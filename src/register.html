@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excelarate</title>
+  <link rel="shortcut icon" href="assets/img/Logo.png" type="image/x-icon">
+  <link rel="stylesheet" href="style.css">
+  <style>
+
+    body{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-image: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      padding: 2rem;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px var(--shadow);
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card-header {
+      background: var(--primary);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .logo-icon {
+      margin-right: 8px;
+      font-size: 1.8rem;
+    }
+    
+    .card-header p {
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+    
+    .card-body {
+      padding: 2rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #495057;
+      font-size: 0.9rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      background-color: #f8f9fa;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--success);
+      box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.15);
+      background-color: white;
+    }
+    
+    .form-icon {
+      position: absolute;
+      top: 42px;
+      left: 12px;
+      color: #6c757d;
+    }
+    
+    .has-icon .form-control {
+      padding-left: 2.5rem;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-success {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(42, 157, 143, 0.3);
+    }
+    
+    .btn-success:active {
+      transform: translateY(0);
+    }
+    
+    .card-footer {
+      padding: 1.5rem 2rem;
+      background: #f8f9fa;
+      text-align: center;
+      border-top: 1px solid #eee;
+    }
+    
+    .card-footer a {
+      color: var(--success);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+    
+    .card-footer a:hover {
+      color: var(--success);
+      text-decoration: underline;
+    }
+    
+    .error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, margin 0.3s ease;
+    }
+    
+    .error.show {
+      max-height: 100px;
+      margin-top: 0.5rem;
+    }
+    
+    .error-icon {
+      margin-right: 5px;
+    }
+    
+    .loading {
+      position: relative;
+    }
+    
+    .loading:after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      margin: auto;
+      border: 3px solid transparent;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: button-loading-spinner 1s linear infinite;
+    }
+    
+    @keyframes button-loading-spinner {
+      from {
+        transform: rotate(0turn);
+      }
+      to {
+        transform: rotate(1turn);
+      }
+    }
+    
+    .loading span {
+      visibility: hidden;
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .card-body, .card-header, .card-footer {
+        padding: 1.25rem;
+      }
+    }
+    
+    /* Password visibility toggle */
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 42px;
+      cursor: pointer;
+      color: #6c757d;
+    }
+    
+    /* Password strength indicator */
+    .password-strength {
+      display: flex;
+      margin-top: 0.5rem;
+      height: 5px;
+      gap: 3px;
+    }
+    
+    .strength-segment {
+      flex: 1;
+      height: 100%;
+      background-color: #e9ecef;
+      border-radius: 3px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .strength-segment.weak {
+      background-color: #e63946;
+    }
+    
+    .strength-segment.medium {
+      background-color: #ffb703;
+    }
+    
+    .strength-segment.strong {
+      background-color: #2a9d8f;
+    }
+    
+    .strength-text {
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+      text-align: right;
+      color: #6c757d;
+      font-weight: 500;
+    }
+    
+    /* Terms checkbox styling */
+    .form-check {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-check-input {
+      margin-right: 0.5rem;
+      margin-top: 0.2rem;
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+    
+    .form-check-label {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    /* Fade-in animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .card {
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* Progress steps */
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    
+    .progress-steps::before {
+      content: "";
+      position: absolute;
+      top: 15px;
+      left: 10%;
+      width: 80%;
+      height: 2px;
+      background-color: #e9ecef;
+      z-index: 0;
+    }
+    
+    .step {
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #6c757d;
+    }
+    
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #f8f9fa;
+      border: 2px solid #ced4da;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .step-text {
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    
+    .step.active .step-number {
+      background-color: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+    
+    .step.active .step-text {
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    .step.completed .step-number {
+      background-color: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+    
+    .step.completed .step-number::after {
+      content: "✓";
+    }
+    
+    .step.completed .step-text {
+      color: var(--success);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <div class="logo">
+          <img src="./assets/img/Logo.png" alt="" width="100px" height="auto" style="border-radius: 20px;">
+        </div>
+        <h2>Sign Up</h2>
+        <p>Create your account to get started</p>
+      </div>
+      
+      <div class="card-body">
+        
+        <form id="registerForm">
+          <div class="form-group has-icon">
+            <label for="name">Full Name</label>
+            <span class="form-icon">👤</span>
+            <input type="text" class="form-control" id="name" placeholder="Enter your full name" required>
+          </div>
+          
+          <div class="form-group has-icon">
+            <label for="email">Email address</label>
+            <span class="form-icon">✉️</span>
+            <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+          </div>
+          
+          <div class="form-group has-icon">
+            <label for="password">Create password</label>
+            <span class="form-icon">🔒</span>
+            <input type="password" class="form-control" id="password" placeholder="Choose a strong password" required>
+            <span class="password-toggle" id="passwordToggle">👁️</span>
+            <div class="password-strength">
+              <div class="strength-segment" id="segment1"></div>
+              <div class="strength-segment" id="segment2"></div>
+              <div class="strength-segment" id="segment3"></div>
+              <div class="strength-segment" id="segment4"></div>
+            </div>
+            <div class="strength-text" id="strengthText">Password strength</div>
+          </div>
+          
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="termsCheck" required>
+            <label class="form-check-label" for="termsCheck">
+              I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            </label>
+          </div>
+          
+          <button type="submit" class="btn btn-success" id="registerButton">
+            <span>Create Account</span>
+          </button>
+          
+          <div class="error" id="error">
+            <span class="error-icon">⚠️</span>
+            <span id="errorMessage"></span>
+          </div>
+        </form>
+      </div>
+      
+      <div class="card-footer">
+        <p>Already have an account? <a href="/login">Sign In</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./assets/scripts/register.js"></script>
+</body>
+</html>

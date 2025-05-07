@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excelarate - Fuel Your Academic Success</title>
+  <link rel="shortcut icon" href="assets/img/Logo.png" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Floating Header */
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 16px var(--shadow);
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: calc(100% - 40px);
+      border-radius: 8px;
+      z-index: 999;
+    }
+
+    .nav-container {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 5%; max-width: 1199px; margin: 0 auto;
+    }
+
+    .logo { display: flex; align-items: center; font-size: 1.25rem; font-weight: 700; color: var(--text); text-decoration: none; }
+    .logo img { border-radius: 20px; margin-right: 0.5rem; }
+
+    .nav-links { display: flex; list-style: none; }
+    .nav-link { margin-left: 1rem; font-weight: 500; color: var(--text); text-decoration: none; transition: color 0.2s ease; font-size: 1rem; }
+    .nav-link:hover { color: var(--primary); }
+    .nav-link.btn { padding: 0.5rem 1.25rem; background: var(--primary); color: white; border-radius: 3px; transition: background 0.2s ease; }
+    .nav-link.btn:hover { background: var(--primary-hover); }
+    .hamburger { display: none; background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text); }
+
+    /* Hero Section Styling */
+    .hero {
+      background: linear-gradient(134deg, var(--gradient-start), var(--gradient-end));
+      color: var(--text-white);
+      padding: 7rem 5% 5rem;
+      position: relative;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px var(--shadow);
+      margin: 0 auto 2rem;
+      max-width: 1200px;
+    }
+    .hero-content { max-width: 800px; margin: 0 auto; text-align: center; }
+    .hero-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; }
+    .hero-subtitle { font-size: 1.125rem; margin-bottom: 2rem; opacity: 0.9; line-height: 1.6; }
+    .btn-group { display: flex; justify-content: center; gap: 1rem; }
+    .btn { padding: 0.75rem 1.5rem; border-radius: 3px; font-weight: 600; text-decoration: none; display: inline-block; transition: transform 0.2s, box-shadow 0.2s; }
+    .btn-primary { background: white; color: var(--primary); border: none; }
+    .btn-primary:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn-outline { background: transparent; color: var(--text-white); border: 1px solid var(--text-white); }
+    .btn-outline:hover { background: rgba(255,255,255,0.1); transform: translateY(-4px); }
+    .hero-image { max-width: 100%; margin-top: 2rem; border-radius: 7px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+
+    /* Section Defaults (excluding hero) */
+    section {
+      padding: 4rem 5%; max-width: 1200px; margin: auto;
+      background: white; border-radius: 8px; box-shadow: 0 4px 16px var(--shadow); margin-bottom: 2rem;
+    }
+    .section-title { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; text-align: center; }
+    .section-subtitle { font-size: 1.125rem; color: var(--text-light); margin-bottom: 2rem; text-align: center; }
+    .feature-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+    .feature { background: var(--background); border-radius: 8px; padding: 2rem; box-shadow: 0 2px 8px var(--shadow); }
+    .feature h3 { color: var(--primary); font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .testimonial { background: var(--background); padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px var(--shadow); margin-bottom: 1rem; }
+
+    /* CTA */
+    .cta {
+      background: var(--primary); color: white; text-align: center;
+      padding: 4rem 2rem; border-radius: 10px; box-shadow: 0 4px 16px var(--shadow);
+    }
+    .cta h2 { font-size: 2rem; margin-bottom: 1rem; }
+    .cta a { display: inline-block; margin-top: 1rem; padding: 0.75rem 2rem; background: white; color: var(--primary); border-radius: 3px; text-decoration: none; font-weight: 600; }
+
+    footer { text-align: center; padding: 2rem; font-size: 0.9rem; color: var(--text-light); }
+
+    @media (max-width: 767px) {
+      .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; flex-direction: column; padding: 1rem 0; box-shadow: 0 4px 8px var(--shadow); }
+      .nav-links.active { display: flex; }
+      .nav-link { margin: 1rem 0; padding: 0.5rem 2rem; }
+      .hamburger { display: block; }
+      .btn-group { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+<!-- Header -->
+<header>
+  <div class="nav-container">
+    <a href="index" class="logo">
+      <img src="assets/img/Logo.png" alt="Excelarate Logo" width="50" height="50">
+      Excelarate
+    </a>
+    <nav>
+      <button class="hamburger" id="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="#testimonials" class="nav-link">Testimonials</a></li>
+        <li><a href="/login" class="nav-link btn">Log In</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">Your Academic Journey, Perfectly Organized</h1>
+    <p class="hero-subtitle">Track your classes, manage extracurriculars, showcase projects, and build your path to success with our all-in-one student platform.</p>
+    <div class="btn-group">
+      <a href="login" class="btn btn-primary">Get Started Free</a>
+      <a href="#features" class="btn btn-outline">See How It Works</a>
+    </div>
+    <img src="assets/img/dashboard.png" alt="Student Dashboard Preview" class="hero-image" width="700" height="auto">
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features">
+  <h2 class="section-title">Powerful Features</h2>
+  <p class="section-subtitle">Everything students need, in one place.</p>
+  <div class="feature-list">
+    <div class="feature">
+      <h3>Academic Planner</h3>
+      <p>Organize your courses, assignments, and deadlines with ease.</p>
+    </div>
+    <div class="feature">
+      <h3>Project Showcase</h3>
+      <p>Highlight your work with beautiful, professional project pages.</p>
+    </div>
+    <div class="feature">
+      <h3>Extracurricular Tracker</h3>
+      <p>Track clubs, sports, and activities to build a strong resume.</p>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how-it-works">
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-subtitle">Start in minutes with just a few steps.</p>
+  <div class="feature-list">
+    <div class="feature">
+      <h3>Create an Account</h3>
+      <p>Sign up with your email and start your academic dashboard instantly.</p>
+    </div>
+    <div class="feature">
+      <h3>Customize Your Profile</h3>
+      <p>Add classes, extracurriculars, and projects to personalize your profile.</p>
+    </div>
+    <div class="feature">
+      <h3>Track and Share</h3>
+      <p>Monitor progress and share your portfolio with peers or mentors.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials Section -->
+<section id="testimonials">
+  <h2 class="section-title">What Students Are Saying</h2>
+  <p class="section-subtitle">Join thousands of happy learners</p>
+  <div class="testimonial">
+    <p>"Excelarate helped me get into my dream college by organizing my projects and extracurriculars in one place."</p>
+    <strong>- Priya K.</strong>
+  </div>
+  <div class="testimonial">
+    <p>"A total game changer for managing school life. I love the clean interface and easy tracking tools!"</p>
+    <strong>- Daniel L.</strong>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta">
+  <h2>Ready to Take Control of Your Academic Life?</h2>
+  <p>Sign up for free and start planning your success today!</p>
+  <a href="/login">Get Started Now</a>
+</section>
+
+<!-- Footer -->
+<footer>
+  &copy; 2025 Excelarate. All rights reserved.
+</footer>
+
+<!-- JS for Hamburger Toggle -->
+<script>
+  document.getElementById('hamburger-btn').addEventListener('click', () => {
+    document.getElementById('nav-links').classList.toggle('active');
+  });
+</script>
+</body>
+</html>
