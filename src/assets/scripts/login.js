@@ -1,5 +1,6 @@
-import {auth, showError} from "../js/app.js";
-import {signInWithEmailAndPassword} from "firebase/auth";
+import {showError} from "../js/app.js";
+import auth from "../js/auth.js";
+import {signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup as signInWithRedirect} from "firebase/auth";
 
 // DOM elements
 const loginForm = document.getElementById('loginForm');
@@ -9,6 +10,8 @@ const loginButton = document.getElementById('loginButton');
 const errorElement = document.getElementById('error');
 const passwordToggle = document.getElementById('passwordToggle');
 const rememberMeCheckbox = document.getElementById('rememberMe');
+const gLoginButton = document.getElementById('gLogin');
+const mLoginButton = document.getElementById('mLogin');
 
 // Password visibility toggle
 passwordToggle.addEventListener('click', function() {
@@ -21,7 +24,7 @@ passwordToggle.addEventListener('click', function() {
     }
 });
 
-// Call on page load
+// Call on a page load
 document.addEventListener('DOMContentLoaded', () => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
@@ -63,8 +66,44 @@ function login(e) {
         })
 
 }
+
+function gLogin(e){
+    if (e) e.preventDefault();
+
+    // Show loading state
+    loginButton.disabled = true;
+    loginButton.classList.add('loading');
+
+    // set up provider
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+        login_hint: emailInput.value || "user@gmail.com"
+    })
+
+    // login with redirect
+    signInWithRedirect(auth, provider)
+        .then(_ => {
+            console.log("gAuth is a sucess")
+            window.location.href = "/home";
+        }
+        )
+        .catch((e) => {
+            console.error(e);
+            showError(e);
+            loginButton.classList.remove('loading')
+        })
+
+}
+
+function mLogin(e){
+    if (e) e.preventDefault();
+    console.log("mLogin")
+}
+
 // Event listeners
 loginForm.addEventListener('submit', login);
+gLoginButton.addEventListener('click', gLogin);
+mLoginButton.addEventListener('click', mLogin)
 
 // Add shake animation
 document.head.insertAdjacentHTML('beforeend', `

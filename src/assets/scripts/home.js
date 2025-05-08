@@ -1,4 +1,4 @@
-import {auth} from '../js/app.js';
+import auth from '../js/auth.js';
 import {onAuthStateChanged, signOut} from "firebase/auth";
 
 // DOM elements

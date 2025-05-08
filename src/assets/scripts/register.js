@@ -1,5 +1,6 @@
-import {auth} from '../js/app.js'
-import {createUserWithEmailAndPassword, updateProfile} from 'firebase/auth'
+import auth from '../js/auth.js'
+import {createUserWithEmailAndPassword, GoogleAuthProvider, updateProfile} from 'firebase/auth'
+import {signInWithPopup as signInWithRedirect} from "@firebase/auth";
 
 // DOM elements
 const registerForm = document.getElementById('registerForm');
@@ -17,6 +18,8 @@ const strengthSegments = [
     document.getElementById('segment3'),
     document.getElementById('segment4')
 ];
+const gLoginButton = document.getElementById('gLogin');
+const mLoginButton = document.getElementById('mLogin');
 const strengthText = document.getElementById('strengthText');
 
 // Password visibility toggle
@@ -177,8 +180,45 @@ function register(e) {
         });
 }
 
+
+function gLogin(e){
+    if (e) e.preventDefault();
+
+    // Show loading state
+    registerButton.disabled = true;
+    registerButton.classList.add('loading');
+
+    // set up provider
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+        login_hint: emailInput.value || "user@gmail.com"
+    })
+
+    // login with redirect
+    signInWithRedirect(auth, provider)
+        .then(_ => {
+                console.log("gAuth is a sucess")
+                window.location.href = "/home";
+            }
+        )
+        .catch((e) => {
+            console.error(e);
+            showError(e);
+            registerButton.classList.remove('loading')
+        })
+
+}
+
+function mLogin(e){
+    if (e) e.preventDefault();
+    console.log("mLogin")
+}
+
+
 // Event listeners
 registerForm.addEventListener('submit', register);
+gLoginButton.addEventListener('click', gLogin);
+mLoginButton.addEventListener('click', mLogin)
 
 // Add shake animation
 document.head.insertAdjacentHTML('beforeend', `
