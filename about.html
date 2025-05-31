@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About - Excelarate Task Manager</title>
+    <link rel="shortcut icon" href="excelarate.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="about.css">
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Navigation Bar -->
+      <nav class="navbar">
+        <div class="container navbar-content">
+          <ul class="nav-links">
+            <li><a href="index.html" class="nav-link active">Home</a></li>
+            <li><a href="about.html" class="nav-link">About</a></li>
+            <li><a href="contact.html" class="nav-link">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <header class="header">
+        <div class="container header-content">
+          <div class="logo">
+            <img src="excelarate.png" alt="" width="75px">
+            <span>Excelarate</span>
+          </div>
+          <div class="controls">
+            <button id="theme-toggle" class="btn-icon" aria-label="Toggle dark mode">
+              <i class="fas fa-moon"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="main">
+        <div class="container">
+          <section class="about-hero fade-in">
+            <div class="about-content">
+              <h1 class="about-title">About Excelarate</h1>
+              <p class="about-description">
+                Your ultimate student task management tool powered by AI assistance. 
+                Excelarate helps you organize, prioritize, and complete your academic tasks efficiently.
+              </p>
+            </div>
+          </section>
+
+          <section class="features-grid slide-in">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-robot"></i>
+              </div>
+              <h3>AI-Powered</h3>
+              <p>Smart task analysis and personalized recommendations to optimize your study schedule.</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-calendar-check"></i>
+              </div>
+              <h3>Smart Scheduling</h3>
+              <p>Intelligent deadline tracking and scheduling suggestions tailored for students.</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <h3>Progress Tracking</h3>
+              <p>Visual insights into your productivity and task completion patterns.</p>
+            </div>
+          </section>
+
+          <section class="mission-section slide-in">
+            <div class="mission-content">
+              <h2>Our Mission</h2>
+              <p>
+                We believe every student deserves the tools to succeed academically. 
+                Excelarate combines modern task management with AI intelligence to help 
+                students stay organized, reduce stress, and achieve their academic goals.
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <div class="container">
+          <p>Excelarate &copy; 2025 - Your ultimate student task management tool with AI assistance</p>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // Theme toggle functionality
+      const themeToggle = document.getElementById('theme-toggle');
+      const body = document.body;
+
+      themeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        const icon = themeToggle.querySelector('i');
+        if (body.classList.contains('dark-mode')) {
+          icon.className = 'fas fa-sun';
+          localStorage.setItem('theme', 'dark');
+        } else {
+          icon.className = 'fas fa-moon';
+          localStorage.setItem('theme', 'light');
+        }
+      });
+
+      // Load saved theme
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        body.classList.add('dark-mode');
+        themeToggle.querySelector('i').className = 'fas fa-sun';
+      }
+    </script>
+  </body>
+</html>

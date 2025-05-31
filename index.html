@@ -5,18 +5,28 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Integration for Excelarate Task Manager</title>
-    <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+    <link rel="shortcut icon" href="excelarate.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/ai-assistant.css">
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div class="app-container">
+      <!-- Navigation Bar -->
+      <nav class="navbar">
+        <div class="container navbar-content">
+          <ul class="nav-links">
+            <li><a href="index.html" class="nav-link active">Home</a></li>
+            <li><a href="about.html" class="nav-link">About</a></li>
+            <li><a href="contact.html" class="nav-link">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
       <header class="header">
         <div class="container header-content">
           <div class="logo">
-            <img src="logo.png" alt="" width="75px">
+            <img src="excelarate.png" alt="" width="75px">
             <span>Excelarate</span>
           </div>
           <div class="controls">
@@ -58,7 +68,7 @@
                 <div id="completed-progress" class="progress-bar" style="width: 0%"></div>
               </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card ai-insights-card">
               <div class="stat-card-title">AI Insights</div>
               <div id="ai-insights-count" class="stat-card-value">
                 <i class="fas fa-brain ai-insights-icon"></i>
@@ -151,53 +161,64 @@
             <input type="hidden" id="task-id">
             <div class="form-group">
               <label for="task-title" class="form-label">Title</label>
-              <input type="text" id="task-title" class="form-input" placeholder="Enter task title" required>
-              <button type="button" id="ai-title-analyze" class="ai-analyze-btn" title="Get AI suggestions">
-                <i class="fas fa-magic"></i>
-              </button>
+              <div class="input-with-ai">
+                <input type="text" id="task-title" class="form-input" placeholder="Enter task title" required>
+                <button type="button" id="ai-title-analyze" class="ai-analyze-btn" title="Get AI suggestions">
+                  <i class="fas fa-magic"></i>
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label for="task-description" class="form-label">Description</label>
-              <textarea id="task-description" class="form-textarea" placeholder="Enter task description"></textarea>
-              <button type="button" id="ai-description-analyze" class="ai-analyze-btn" title="Get AI suggestions">
-                <i class="fas fa-magic"></i>
-              </button>
+              <div class="input-with-ai">
+                <textarea id="task-description" class="form-textarea" placeholder="Enter task description"></textarea>
+                <button type="button" id="ai-description-analyze" class="ai-analyze-btn" title="Get AI suggestions">
+                  <i class="fas fa-magic"></i>
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label for="task-deadline" class="form-label">Deadline</label>
-              <input type="datetime-local" id="task-deadline" class="form-input" required>
-              <button type="button" id="ai-schedule-suggest" class="ai-analyze-btn" title="Get optimal scheduling suggestions">
-                <i class="fas fa-calendar-check"></i>
-              </button>
+              <div class="input-with-ai">
+                <input type="datetime-local" id="task-deadline" class="form-input" required>
+                <button type="button" id="ai-schedule-suggest" class="ai-analyze-btn" title="Get optimal scheduling suggestions">
+                  <i class="fas fa-calendar-check"></i>
+                </button>
+              </div>
             </div>
             <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" id="task-no-deadline" style="width: auto; height: auto;"> <label for="task-no-deadline" class="form-label" style="margin-bottom: 0;">No Deadline</label>
+              <input type="checkbox" id="task-no-deadline" style="width: auto; height: auto;"> 
+              <label for="task-no-deadline" class="form-label" style="margin-bottom: 0;">No Deadline</label>
             </div>
             <div class="form-group">
               <label for="task-priority" class="form-label">Priority</label>
-              <select id="task-priority" class="form-select" required>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-              <button type="button" id="ai-priority-suggest" class="ai-analyze-btn" title="Get AI priority suggestion">
-                <i class="fas fa-sort-amount-up"></i>
-              </button>
+              <div class="input-with-ai">
+                <select id="task-priority" class="form-select" required>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+                <button type="button" id="ai-priority-suggest" class="ai-analyze-btn" title="Get AI priority suggestion">
+                  <i class="fas fa-sort-amount-up"></i>
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label for="task-category" class="form-label">Course/Category</label>
-              <select id="task-category" class="form-select" required>
-                <option value="">Select a category</option>
-                <option value="Math">Mathematics</option>
-                <option value="Science">Science</option>
-                <option value="History">History</option>
-                <option value="English">English</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Other">Other</option>
-              </select>
-              <button type="button" id="ai-category-suggest" class="ai-analyze-btn" title="Get AI category suggestion">
-                <i class="fas fa-tag"></i>
-              </button>
+              <div class="input-with-ai">
+                <select id="task-category" class="form-select" required>
+                  <option value="">Select a category</option>
+                  <option value="Math">Mathematics</option>
+                  <option value="Science">Science</option>
+                  <option value="History">History</option>
+                  <option value="English">English</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Other">Other</option>
+                </select>
+                <button type="button" id="ai-category-suggest" class="ai-analyze-btn" title="Get AI category suggestion">
+                  <i class="fas fa-tag"></i>
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label for="task-custom-category" class="form-label">Or add a new category</label>
@@ -205,10 +226,12 @@
             </div>
             <div class="form-group">
               <label for="task-estimated-time" class="form-label">Estimated Study Time (minutes)</label>
-              <input type="number" id="task-estimated-time" class="form-input" placeholder="e.g., 60" min="1">
-              <button type="button" id="ai-time-estimate" class="ai-analyze-btn" title="Get AI time estimate">
-                <i class="fas fa-clock"></i>
-              </button>
+              <div class="input-with-ai">
+                <input type="number" id="task-estimated-time" class="form-input" placeholder="e.g., 60" min="1">
+                <button type="button" id="ai-time-estimate" class="ai-analyze-btn" title="Get AI time estimate">
+                  <i class="fas fa-clock"></i>
+                </button>
+              </div>
             </div>
           </form>
         </div>
