@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="/EXCELARATE.png" type="image/x-icon">
+<title>Excelarate — Your Academic Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Fraunces:opsz,wght@9..144,300;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface: #111114;
+    --surface2: #18181d;
+    --border: #252529;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --accent3: #7b9cff;
+    --text: #f0f0ee;
+    --muted: #6b6b75;
+    --danger: #ff4444;
+    --green: #4dff91;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRAIN OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.5;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 20px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(10,10,12,0.95), transparent);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--accent); }
+
+  .nav-cta {
+    padding: 10px 24px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-cta:hover { background: #d4eb00; transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 0 48px;
+    position: relative;
+  }
+
+  .hero-bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(232,255,71,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    max-width: 680px;
+    position: relative;
+    z-index: 2;
+    animation: heroIn 0.9s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  @keyframes heroIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 28px;
+    border: 1px solid rgba(232,255,71,0.2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(232,255,71,0.05);
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 2s infinite;
+  }
+  @keyframes blink {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(52px, 8vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+  .hero-title .accent-word {
+    color: var(--accent);
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  .hero-desc {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 480px;
+    margin-bottom: 40px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    padding: 14px 32px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { background: #d4eb00; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,255,71,0.2); }
+  .btn-secondary {
+    padding: 14px 32px;
+    background: none;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--muted); transform: translateY(-2px); }
+
+  /* ── FEATURES STRIP ── */
+  .features {
+    padding: 80px 48px;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .features-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    animation: cardIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .feature-card:nth-child(1) { animation-delay: 0.1s; }
+  .feature-card:nth-child(2) { animation-delay: 0.2s; }
+  .feature-card:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+    transform-origin: left;
+  }
+  .feature-card:hover { border-color: var(--muted); transform: translateY(-3px); }
+  .feature-card:hover::after { transform: scaleX(1); }
+
+  .feature-icon { font-size: 32px; margin-bottom: 16px; }
+  .feature-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 40px 48px;
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    flex-wrap: wrap;
+  }
+  .stat-item { text-align: center; }
+  .stat-val {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); margin-top: 6px; }
+
+  /* ── AUTH SECTION ── */
+  .auth-section {
+    padding: 80px 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    scroll-margin-top: 80px;
+  }
+  .auth-section .hero-bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(123,156,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(123,156,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  .auth-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 2;
+    animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .auth-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.03em;
+  }
+  .auth-logo span { color: var(--accent); }
+  .auth-tagline { font-size: 12px; color: var(--muted); margin-bottom: 32px; }
+
+  .auth-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 28px;
+  }
+  .auth-tab {
+    flex: 1;
+    padding: 9px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: all 0.2s;
+  }
+  .auth-tab.active { background: var(--accent); color: var(--bg); }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .form-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+  .form-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--muted); }
+
+  .btn-auth {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-auth:hover { background: #d4eb00; transform: translateY(-1px); }
+  .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .btn-google {
+    width: 100%;
+    padding: 13px;
+    background: none;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-google:hover { border-color: var(--muted); transform: translateY(-1px); }
+
+  .auth-error {
+    color: var(--danger);
+    font-size: 11px;
+    margin-top: 10px;
+    display: none;
+    padding: 10px 14px;
+    background: rgba(255,68,68,0.08);
+    border: 1px solid rgba(255,68,68,0.2);
+    border-radius: 8px;
+  }
+  .auth-error.show { display: block; }
+
+  .auth-success {
+    color: var(--green);
+    font-size: 11px;
+    margin-top: 10px;
+    display: none;
+    padding: 10px 14px;
+    background: rgba(77,255,145,0.08);
+    border: 1px solid rgba(77,255,145,0.2);
+    border-radius: 8px;
+  }
+  .auth-success.show { display: block; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 32px 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--muted);
+  }
+  .footer-brand span { color: var(--accent); }
+  .footer-note { font-size: 11px; color: var(--muted); }
+
+  /* FIREBASE CONFIG NOTICE */
+  .config-notice {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,107,53,0.12);
+    border: 1px solid rgba(255,107,53,0.3);
+    color: var(--accent2);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 12px;
+    z-index: 200;
+    max-width: 560px;
+    width: 90%;
+    text-align: center;
+    display: none;
+  }
+  .config-notice.show { display: block; }
+  .config-notice a { color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .hero { padding: 120px 24px 60px; }
+    .features { padding: 60px 24px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .stats-row { gap: 40px; padding: 40px 24px; }
+    .auth-section { padding: 60px 24px; }
+    footer { padding: 24px; }
+  }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid transparent;
+    border-top-color: var(--bg);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- CONFIG NOTICE -->
+<div class="config-notice" id="config-notice">
+  ⚙️ <strong>Setup Required:</strong> Replace the Firebase config in this file with your own project credentials.
+  <a href="https://console.firebase.google.com" target="_blank">Get config →</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Excel<span>arate</span></div>
+  <button class="nav-cta" onclick="scrollToAuth()">Get Started →</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Academic Command Center</div>
+    <h1 class="hero-title">
+      Study<br>
+      <span class="accent-word">smarter,</span><br>
+      not harder.
+    </h1>
+    <p class="hero-desc">
+      Excelarate combines your to-do list, Pomodoro timer, and exam countdown into one focused dashboard — so you spend less time organising and more time learning.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="scrollToAuth()">Start for Free</button>
+      <button class="btn-secondary" onclick="document.querySelector('.features').scrollIntoView({behavior:'smooth'})">See Features ↓</button>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-label">Everything you need</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">✓</div>
+      <div class="feature-name">Smart To-Do</div>
+      <div class="feature-desc">Priority-tagged tasks that sync in real-time across devices. Never lose track of what matters.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◉</div>
+      <div class="feature-name">Pomodoro Timer</div>
+      <div class="feature-desc">Configurable focus sessions with animated ring progress. Auto-cycles through work and break intervals.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📅</div>
+      <div class="feature-name">Exam Countdown</div>
+      <div class="feature-desc">Live second-by-second countdown to every exam. Visual urgency indicators so you're never caught off-guard.</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-item">
+    <div class="stat-val">4</div>
+    <div class="stat-lbl">Integrated Tools</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">∞</div>
+    <div class="stat-lbl">Tasks & Exams</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">1</div>
+    <div class="stat-lbl">Focused Dashboard</div>
+  </div>
+</div>
+
+<!-- AUTH SECTION -->
+<section class="auth-section" id="auth-section">
+  <div class="hero-bg-grid"></div>
+  <div class="auth-box">
+    <div class="auth-logo">Excel<span>arate</span></div>
+    <div class="auth-tagline">Your academic command center.</div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Log In</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="login-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-auth" id="btn-login" onclick="doLogin()">Log In</button>
+
+      <div class="divider">or</div>
+      <button class="btn-google" onclick="doGoogle()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="auth-error" id="login-error"></div>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div id="form-signup" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Display Name</label>
+        <input class="form-input" type="text" id="signup-name" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="signup-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="signup-pass" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter')doSignup()">
+      </div>
+      <button class="btn-auth" id="btn-signup" onclick="doSignup()">Create Account</button>
+
+      <div class="divider">or</div>
+      <button class="btn-google" onclick="doGoogle()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="auth-error" id="signup-error"></div>
+      <div class="auth-success" id="signup-success"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">Excel<span>arate</span></div>
+  <div class="footer-note">Built for students who mean business. • version 1.2.0</div>
+</footer>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  // ════════════════════════════════════════
+  // 🔥 REPLACE THIS WITH YOUR FIREBASE CONFIG
+  // Go to: Firebase Console → Project Settings → Your Apps → SDK setup
+  // ════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBs7oaWeJaGSABLIZTHw_e3FKqjXZEfWl0",
+  authDomain: "excelarate-42dfe.firebaseapp.com",
+  projectId: "excelarate-42dfe",
+  storageBucket: "excelarate-42dfe.firebasestorage.app",
+  messagingSenderId: "912173507507",
+  appId: "1:912173507507:web:62a80ec070a40678c1e1c6"
+};
+  // ════════════════════════════════════════
+
+  // Firebase config is already set; allow auth to proceed.
+  const isConfigured = true;
+
+  // Hide config notice in case it was shown by default styles.
+  document.getElementById('config-notice').classList.remove('show');
+
+  let app, auth, googleProvider;
+
+  if (isConfigured) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+
+    // If already logged in, redirect to dashboard
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = 'dashboard.html';
+      }
+    });
+  }
+
+  window.doLogin = async function() {
+    if (!isConfigured) { showError('login-error', 'Please configure Firebase first.'); return; }
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if (!email || !pass) { showError('login-error', 'Please fill in all fields.'); return; }
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Logging in…';
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      window.location.href = 'dashboard.html';
+    } catch(e) {
+      showError('login-error', friendlyError(e.code));
+      btn.disabled = false;
+      btn.textContent = 'Log In';
+    }
+  };
+
+  window.doSignup = async function() {
+    if (!isConfigured) { showError('signup-error', 'Please configure Firebase first.'); return; }
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const pass = document.getElementById('signup-pass').value;
+    if (!name || !email || !pass) { showError('signup-error', 'Please fill in all fields.'); return; }
+    if (pass.length < 6) { showError('signup-error', 'Password must be at least 6 characters.'); return; }
+    const btn = document.getElementById('btn-signup');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Creating account…';
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      await updateProfile(cred.user, { displayName: name });
+      window.location.href = 'dashboard.html';
+    } catch(e) {
+      showError('signup-error', friendlyError(e.code));
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+    }
+  };
+
+  window.doGoogle = async function() {
+    if (!isConfigured) { alert('Please configure Firebase first.'); return; }
+    try {
+      await signInWithPopup(auth, googleProvider);
+      window.location.href = 'dashboard.html';
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 4000);
+  }
+
+  function friendlyError(code) {
+    const map = {
+      'auth/user-not-found': 'No account found with this email.',
+      'auth/wrong-password': 'Incorrect password.',
+      'auth/email-already-in-use': 'An account already exists with this email.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/weak-password': 'Password should be at least 6 characters.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/popup-closed-by-user': 'Sign-in popup was closed.',
+      'auth/invalid-credential': 'Invalid email or password.',
+    };
+    return map[code] || 'Something went wrong. Please try again.';
+  }
+</script>
+
+<script>
+  function scrollToAuth() {
+    document.getElementById('auth-section').scrollIntoView({ behavior: 'smooth' });
+  }
+  function switchTab(tab) {
+    document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('form-signup').style.display = tab === 'signup' ? 'block' : 'none';
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  }
+</script>
+
+</body>
+</html>

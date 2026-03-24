@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="/EXCELARATE.png" type="image/x-icon">
+<title>Excelarate — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Fraunces:opsz,wght@9..144,300;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141417;
+    --surface2: #1c1c21;
+    --border: #2a2a30;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --accent3: #7b9cff;
+    --text: #f0f0ee;
+    --muted: #6b6b75;
+    --danger: #ff4444;
+    --green: #4dff91;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Mono',monospace; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+  /* ── AUTH GUARD SCREEN ── */
+  #auth-guard {
+    position:fixed; inset:0; background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:16px; z-index:9999;
+  }
+  #auth-guard .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:32px; }
+  #auth-guard .logo span { color:var(--accent); }
+  #auth-guard p { font-size:12px; color:var(--muted); }
+  .loading-dots { display:flex; gap:6px; }
+  .loading-dots span {
+    width:6px; height:6px; border-radius:50%; background:var(--accent);
+    animation:dot-bounce 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay:0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay:0.4s; }
+  @keyframes dot-bounce { 0%,80%,100%{transform:scale(0.6);opacity:0.3} 40%{transform:scale(1);opacity:1} }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position:fixed; left:0; top:0; bottom:0; width:72px;
+    background:var(--surface); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center;
+    padding:20px 0; z-index:100; gap:6px;
+  }
+  .logo-side {
+    font-family:'Syne',sans-serif; font-weight:800; font-size:11px;
+    color:var(--accent); letter-spacing:0.1em;
+    writing-mode:vertical-rl; transform:rotate(180deg);
+    margin-bottom:24px; text-transform:uppercase;
+  }
+  .nav-btn {
+    width:44px; height:44px; border-radius:10px; border:1px solid transparent;
+    background:none; color:var(--muted); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; transition:all 0.2s; font-size:18px;
+  }
+  .nav-btn span.label { font-family:'DM Mono',monospace; font-size:7px; letter-spacing:0.05em; text-transform:uppercase; }
+  .nav-btn:hover { color:var(--text); border-color:var(--border); }
+  .nav-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+  .nav-btn.active .label { color:var(--bg); }
+
+  /* User avatar at bottom */
+  .sidebar-bottom { margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .user-avatar {
+    width:36px; height:36px; border-radius:50%;
+    background:var(--accent); color:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:14px;
+    cursor:pointer; border:2px solid transparent;
+    transition:border-color 0.2s;
+  }
+  .user-avatar:hover { border-color:var(--accent); }
+  .sign-out-btn {
+    width:36px; height:36px; border-radius:8px; border:1px solid var(--border);
+    background:none; color:var(--muted); cursor:pointer; font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s;
+  }
+  .sign-out-btn:hover { border-color:var(--danger); color:var(--danger); }
+
+  /* ── MAIN ── */
+  .main { margin-left:72px; min-height:100vh; padding:32px 36px; }
+  .page { display:none; animation:fadeIn 0.3s ease; }
+  .page.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .page-header { display:flex; align-items:baseline; gap:12px; margin-bottom:32px; }
+  .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:32px; }
+  .page-sub { font-size:12px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+
+  /* ── CARDS ── */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; position:relative; overflow:hidden; }
+  .card-label { font-size:10px; text-transform:uppercase; letter-spacing:0.15em; color:var(--muted); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .card-label::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); display:inline-block; }
+
+  /* ── DASHBOARD ── */
+  .dashboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .widget-pomo { grid-column:1; grid-row:1; }
+  .widget-todo { grid-column:2; grid-row:1/3; }
+  .widget-exam { grid-column:1; grid-row:2; }
+
+  .pomo-display { text-align:center; padding:16px 0 8px; }
+  .pomo-time-big { font-family:'Fraunces',serif; font-size:56px; font-weight:300; color:var(--accent); letter-spacing:-2px; line-height:1; font-variant-numeric:tabular-nums; }
+  .pomo-mode-badge { display:inline-block; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; padding:4px 12px; border-radius:20px; background:var(--surface2); border:1px solid var(--border); color:var(--muted); margin-top:10px; }
+  .pomo-mode-badge.work { border-color:var(--accent); color:var(--accent); }
+  .pomo-mode-badge.break { border-color:var(--green); color:var(--green); }
+  .pomo-mini-progress { height:3px; background:var(--surface2); border-radius:2px; margin-top:12px; overflow:hidden; }
+  .pomo-mini-progress-fill { height:100%; background:var(--accent); border-radius:2px; transition:width 0.5s linear; }
+
+  .next-exam-name { font-family:'Fraunces',serif; font-size:18px; font-style:italic; color:var(--text); margin-bottom:10px; }
+  .countdown-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; }
+  .count-unit { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 6px 8px; text-align:center; }
+  .count-num { font-family:'Fraunces',serif; font-size:28px; font-weight:700; color:var(--accent3); line-height:1; font-variant-numeric:tabular-nums; }
+  .count-lbl { font-size:8px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-top:4px; }
+
+  .todo-list-preview { display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; }
+  .todo-list-preview::-webkit-scrollbar { width:4px; }
+  .todo-list-preview::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  .todo-item-preview { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface2); border-radius:8px; border:1px solid var(--border); }
+  .todo-check-mini { width:14px; height:14px; border-radius:4px; border:1px solid var(--muted); flex-shrink:0; }
+  .todo-check-mini.done { background:var(--green); border-color:var(--green); }
+  .todo-text-preview { font-size:12px; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .todo-text-preview.done { text-decoration:line-through; color:var(--muted); }
+  .todo-prio { font-size:9px; padding:2px 7px; border-radius:10px; text-transform:uppercase; letter-spacing:0.08em; }
+  .prio-high { background:rgba(255,68,68,0.15); color:var(--danger); }
+  .prio-med { background:rgba(255,107,53,0.15); color:var(--accent2); }
+  .prio-low { background:rgba(77,255,145,0.12); color:var(--green); }
+
+  /* ── TODO PAGE ── */
+  .todo-add-form { display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
+  .input-field { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 16px; color:var(--text); font-family:'DM Mono',monospace; font-size:13px; outline:none; transition:border-color 0.2s; }
+  .input-field:focus { border-color:var(--accent); }
+  .input-field::placeholder { color:var(--muted); }
+  .input-task { flex:1; min-width:200px; }
+  .btn { padding:12px 22px; border-radius:10px; border:none; cursor:pointer; font-family:'DM Mono',monospace; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; transition:all 0.2s; }
+  .btn-accent { background:var(--accent); color:var(--bg); }
+  .btn-accent:hover { background:#d4eb00; transform:translateY(-1px); }
+  .btn-ghost { background:none; color:var(--muted); border:1px solid var(--border); }
+  .btn-ghost:hover { color:var(--text); border-color:var(--muted); }
+  .btn-danger { background:rgba(255,68,68,0.1); color:var(--danger); border:1px solid rgba(255,68,68,0.2); padding:6px 12px; font-size:11px; }
+  .btn-danger:hover { background:rgba(255,68,68,0.2); }
+  .btn-sm { padding:6px 14px; font-size:10px; }
+
+  .todo-stats-row { display:flex; gap:14px; margin-bottom:20px; }
+  .todo-stat-pill { padding:6px 14px; border-radius:20px; background:var(--surface2); border:1px solid var(--border); font-size:11px; color:var(--muted); }
+  .todo-stat-pill strong { color:var(--text); }
+
+  .todo-full-list { display:flex; flex-direction:column; gap:10px; }
+  .todo-item-full { display:flex; align-items:center; gap:14px; padding:14px 18px; background:var(--surface); border:1px solid var(--border); border-radius:12px; transition:all 0.2s; }
+  .todo-item-full:hover { border-color:var(--muted); }
+  .todo-item-full.done-item { opacity:0.5; }
+  .check-box { width:20px; height:20px; border-radius:6px; border:2px solid var(--muted); background:none; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:11px; }
+  .check-box:hover { border-color:var(--accent); }
+  .check-box.checked { background:var(--green); border-color:var(--green); color:var(--bg); }
+  .todo-item-text { flex:1; font-size:14px; color:var(--text); }
+  .todo-item-full.done-item .todo-item-text { text-decoration:line-through; color:var(--muted); }
+  .select-field { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; outline:none; cursor:pointer; }
+  .select-field:focus { border-color:var(--accent); }
+  .select-field option { background:var(--surface2); }
+
+  /* ── POMODORO PAGE ── */
+  .pomo-center { display:flex; flex-direction:column; align-items:center; gap:32px; padding:20px 0; }
+  .pomo-ring-wrap { position:relative; width:280px; height:280px; }
+  .pomo-ring-wrap svg { width:100%; height:100%; transform:rotate(-90deg); }
+  .pomo-ring-bg { fill:none; stroke:var(--surface2); stroke-width:8; }
+  .pomo-ring-fg { fill:none; stroke:var(--accent); stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 0.5s ease, stroke 0.3s; }
+  .pomo-center-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+  .pomo-big-time { font-family:'Fraunces',serif; font-size:64px; font-weight:300; color:var(--text); letter-spacing:-3px; font-variant-numeric:tabular-nums; line-height:1; }
+  .pomo-session-label { font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:var(--muted); margin-top:6px; }
+  .pomo-tabs { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:5px; }
+  .pomo-tab { padding:8px 20px; border-radius:8px; border:none; background:none; color:var(--muted); font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; letter-spacing:0.08em; }
+  .pomo-tab.active { background:var(--accent); color:var(--bg); }
+  .pomo-controls { display:flex; gap:12px; align-items:center; }
+  .pomo-btn-main { width:64px; height:64px; border-radius:50%; border:2px solid var(--accent); background:var(--accent); color:var(--bg); font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .pomo-btn-main:hover { transform:scale(1.06); }
+  .pomo-btn-secondary { width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background:none; color:var(--muted); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .pomo-btn-secondary:hover { border-color:var(--muted); color:var(--text); }
+  .pomo-stats { display:flex; gap:32px; text-align:center; }
+  .pomo-stat-val { font-family:'Fraunces',serif; font-size:36px; font-weight:300; color:var(--accent); }
+  .pomo-stat-lbl { font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-top:2px; }
+  .pomo-settings-row { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
+  .pomo-setting { display:flex; flex-direction:column; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 20px; min-width:100px; }
+  .pomo-setting label { font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); }
+  .pomo-setting input[type="number"] { background:none; border:none; border-bottom:1px solid var(--border); color:var(--text); font-family:'Fraunces',serif; font-size:26px; font-weight:300; width:60px; text-align:center; outline:none; padding:4px 0; }
+  .pomo-setting input[type="number"]:focus { border-bottom-color:var(--accent); }
+
+  /* ── EXAM PAGE ── */
+  .exam-add-form { display:grid; grid-template-columns:1fr 1fr auto auto; gap:10px; margin-bottom:28px; align-items:end; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-label { font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); }
+  .exam-list { display:flex; flex-direction:column; gap:14px; }
+  .exam-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 24px; display:flex; align-items:center; gap:20px; transition:border-color 0.2s; }
+  .exam-card:hover { border-color:var(--muted); }
+  .exam-card.passed { opacity:0.4; }
+  .exam-icon { width:44px; height:44px; border-radius:10px; background:rgba(123,156,255,0.1); border:1px solid rgba(123,156,255,0.2); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+  .exam-info { flex:1; }
+  .exam-name { font-family:'Syne',sans-serif; font-weight:700; font-size:16px; color:var(--text); margin-bottom:4px; }
+  .exam-date-str { font-size:11px; color:var(--muted); }
+  .exam-countdown-inline { display:flex; gap:10px; align-items:center; }
+  .exam-unit { text-align:center; min-width:44px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 6px 6px; }
+  .exam-unit-num { font-family:'Fraunces',serif; font-size:22px; font-weight:300; color:var(--accent3); font-variant-numeric:tabular-nums; line-height:1; }
+  .exam-unit-lbl { font-size:8px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-top:2px; }
+  .urgency-dot { width:8px; height:8px; border-radius:50%; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .urgency-soon { background:var(--danger); }
+  .urgency-close { background:var(--accent2); }
+  .urgency-ok { background:var(--green); }
+
+  .empty-state { text-align:center; padding:60px 20px; color:var(--muted); font-size:13px; }
+  .empty-state .big { font-size:40px; margin-bottom:12px; }
+
+  /* Notification */
+  .notif { position:fixed; bottom:24px; right:24px; background:var(--accent); color:var(--bg); padding:12px 20px; border-radius:10px; font-size:13px; font-family:'DM Mono',monospace; z-index:999; transform:translateY(80px); opacity:0; transition:all 0.3s ease; }
+  .notif.show { transform:translateY(0); opacity:1; }
+
+  /* Sync indicator */
+  .sync-dot { width:6px; height:6px; border-radius:50%; background:var(--green); display:inline-block; margin-left:6px; animation:pulse 3s infinite; }
+  .sync-dot.syncing { background:var(--accent2); animation:spin 0.8s linear infinite; width:10px; height:10px; border:2px solid var(--accent2); border-top-color:transparent; border-radius:50%; background:none; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--surface); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+  @media(max-width:768px) {
+    .dashboard-grid { grid-template-columns:1fr; }
+    .widget-todo,.widget-exam { grid-column:1; grid-row:auto; }
+    .exam-add-form { grid-template-columns:1fr 1fr; }
+    .main { padding:20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH GUARD -->
+<div id="auth-guard">
+  <div class="logo">Excel<span>arate</span></div>
+  <div class="loading-dots"><span></span><span></span><span></span></div>
+  <p>Checking session…</p>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" style="display:none" id="sidebar">
+  <div class="logo-side">Excelarate</div>
+  <button class="nav-btn active" onclick="showPage('home')" id="nav-home">
+    <span>⌂</span><span class="label">Home</span>
+  </button>
+  <button class="nav-btn" onclick="showPage('todo')" id="nav-todo">
+    <span>✓</span><span class="label">Tasks</span>
+  </button>
+  <button class="nav-btn" onclick="showPage('pomo')" id="nav-pomo">
+    <span>◉</span><span class="label">Focus</span>
+  </button>
+  <button class="nav-btn" onclick="showPage('exam')" id="nav-exam">
+    <span>📅</span><span class="label">Exams</span>
+  </button>
+  <div class="sidebar-bottom">
+    <div class="user-avatar" id="user-avatar" title="Signed in">?</div>
+    <button class="sign-out-btn" onclick="doSignOut()" title="Sign out">⏏</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="main-content" style="display:none">
+
+  <!-- ══ HOME ══ -->
+  <div class="page active" id="page-home">
+    <div class="page-header">
+      <h1 class="page-title">Dashboard</h1>
+      <span class="page-sub" id="home-date"></span>
+      <span class="sync-dot" id="sync-dot" title="Synced"></span>
+    </div>
+    <div class="dashboard-grid">
+      <div class="card widget-pomo">
+        <div class="card-label">Focus Timer</div>
+        <div class="pomo-display">
+          <div class="pomo-time-big" id="widget-pomo-time">25:00</div>
+          <div class="pomo-mode-badge work" id="widget-pomo-badge">Work Session</div>
+        </div>
+        <div class="pomo-mini-progress">
+          <div class="pomo-mini-progress-fill" id="widget-pomo-bar" style="width:100%"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn btn-accent" style="flex:1" onclick="showPage('pomo')">Open Timer</button>
+        </div>
+      </div>
+
+      <div class="card widget-todo">
+        <div class="card-label">Tasks</div>
+        <div id="widget-todo-list" class="todo-list-preview">
+          <div class="empty-state"><div class="big">✓</div>No tasks yet</div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="showPage('todo')">Manage Tasks →</button>
+      </div>
+
+      <div class="card widget-exam">
+        <div class="card-label">Next Exam</div>
+        <div id="widget-exam-content">
+          <div class="empty-state" style="padding:20px"><div class="big">📅</div>No exams scheduled</div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="showPage('exam')">Add Exam →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TODO ══ -->
+  <div class="page" id="page-todo">
+    <div class="page-header">
+      <h1 class="page-title">Tasks</h1>
+      <span class="page-sub">Get things done</span>
+    </div>
+    <div class="todo-add-form">
+      <input class="input-field input-task" id="todo-input" placeholder="Add a new task…" onkeydown="if(event.key==='Enter')addTodo()">
+      <select class="select-field" id="todo-prio">
+        <option value="low">Low</option>
+        <option value="med" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+      <button class="btn btn-accent" onclick="addTodo()">+ Add</button>
+    </div>
+    <div class="todo-stats-row">
+      <div class="todo-stat-pill"><strong id="stat-total">0</strong> total</div>
+      <div class="todo-stat-pill"><strong id="stat-done">0</strong> done</div>
+      <div class="todo-stat-pill"><strong id="stat-left">0</strong> remaining</div>
+    </div>
+    <div id="todo-full-list" class="todo-full-list">
+      <div class="empty-state"><div class="big">📝</div>Start adding tasks above!</div>
+    </div>
+  </div>
+
+  <!-- ══ POMODORO ══ -->
+  <div class="page" id="page-pomo">
+    <div class="page-header">
+      <h1 class="page-title">Pomodoro</h1>
+      <span class="page-sub" id="pomo-session-count">Session 1</span>
+    </div>
+    <div class="pomo-center">
+      <div class="pomo-tabs">
+        <button class="pomo-tab active" onclick="setPomoMode('work',this)">Work</button>
+        <button class="pomo-tab" onclick="setPomoMode('short',this)">Short Break</button>
+        <button class="pomo-tab" onclick="setPomoMode('long',this)">Long Break</button>
+      </div>
+      <div class="pomo-ring-wrap">
+        <svg viewBox="0 0 280 280">
+          <circle class="pomo-ring-bg" cx="140" cy="140" r="120"/>
+          <circle class="pomo-ring-fg" id="pomo-ring" cx="140" cy="140" r="120" stroke-dasharray="753.98" stroke-dashoffset="0"/>
+        </svg>
+        <div class="pomo-center-text">
+          <div class="pomo-big-time" id="pomo-display">25:00</div>
+          <div class="pomo-session-label" id="pomo-label">Work Session</div>
+        </div>
+      </div>
+      <div class="pomo-controls">
+        <button class="pomo-btn-secondary" onclick="resetPomo()" title="Reset">↺</button>
+        <button class="pomo-btn-main" id="pomo-play-btn" onclick="togglePomo()">▶</button>
+        <button class="pomo-btn-secondary" onclick="skipPomo()" title="Skip">⏭</button>
+      </div>
+      <div class="pomo-stats">
+        <div>
+          <div class="pomo-stat-val" id="stat-sessions">0</div>
+          <div class="pomo-stat-lbl">Sessions</div>
+        </div>
+        <div>
+          <div class="pomo-stat-val" id="stat-focus-time">0m</div>
+          <div class="pomo-stat-lbl">Focus Time</div>
+        </div>
+      </div>
+      <div class="pomo-settings-row">
+        <div class="pomo-setting"><label>Work (min)</label><input type="number" id="set-work" value="25" min="1" max="60" onchange="updatePomoSettings()"></div>
+        <div class="pomo-setting"><label>Short Break</label><input type="number" id="set-short" value="5" min="1" max="30" onchange="updatePomoSettings()"></div>
+        <div class="pomo-setting"><label>Long Break</label><input type="number" id="set-long" value="15" min="1" max="60" onchange="updatePomoSettings()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ EXAMS ══ -->
+  <div class="page" id="page-exam">
+    <div class="page-header">
+      <h1 class="page-title">Exams</h1>
+      <span class="page-sub">Countdown to D-Day</span>
+    </div>
+    <div class="exam-add-form">
+      <div class="form-group">
+        <label class="form-label">Exam Name</label>
+        <input class="input-field" id="exam-name" placeholder="e.g. Mathematics Final">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date & Time</label>
+        <input class="input-field" type="datetime-local" id="exam-dt">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <select class="select-field" id="exam-icon-select">
+          <option value="📐">📐 Maths</option>
+          <option value="🔬">🔬 Science</option>
+          <option value="📖">📖 English</option>
+          <option value="🌍">🌍 Geography</option>
+          <option value="🏛️">🏛️ History</option>
+          <option value="💻">💻 CS</option>
+          <option value="🎨">🎨 Arts</option>
+          <option value="📊">📊 Economics</option>
+          <option value="⚗️">⚗️ Chemistry</option>
+          <option value="🧬">🧬 Biology</option>
+          <option value="📝">📝 Other</option>
+        </select>
+      </div>
+      <button class="btn btn-accent" onclick="addExam()" style="align-self:end">+ Add</button>
+    </div>
+    <div id="exam-list" class="exam-list">
+      <div class="empty-state"><div class="big">🎓</div>No exams added yet!</div>
+    </div>
+  </div>
+
+</main>
+
+<div class="notif" id="notif"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot,
+    query, orderBy, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ════════════════════════════════════════
+  // 🔥 PASTE YOUR FIREBASE CONFIG HERE
+  // (same config as index.html)
+  // ════════════════════════════════════════
+  const firebaseConfig = {
+  apiKey: "AIzaSyBs7oaWeJaGSABLIZTHw_e3FKqjXZEfWl0",
+  authDomain: "excelarate-42dfe.firebaseapp.com",
+  projectId: "excelarate-42dfe",
+  storageBucket: "excelarate-42dfe.firebasestorage.app",
+  messagingSenderId: "912173507507",
+  appId: "1:912173507507:web:62a80ec070a40678c1e1c6"
+};
+
+  // ════════════════════════════════════════
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let todosCache = [];
+  let examsCache = [];
+  let unsubTodos = null;
+  let unsubExams = null;
+
+  // ── AUTH GUARD ──
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    currentUser = user;
+    document.getElementById('auth-guard').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main-content').style.display = 'block';
+
+    // Set avatar
+    const av = document.getElementById('user-avatar');
+    av.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
+    av.title = user.displayName || user.email;
+
+    subscribeData();
+    renderWidgets();
+    window._dbReady = true;
+  });
+
+  window.doSignOut = async function() {
+    if (unsubTodos) unsubTodos();
+    if (unsubExams) unsubExams();
+    await signOut(auth);
+    window.location.href = 'index.html';
+  };
+
+  // ── FIRESTORE SUBSCRIPTIONS ──
+  function subscribeData() {
+    const uid = currentUser.uid;
+
+    const todosQ = query(collection(db, `users/${uid}/todos`), orderBy('createdAt', 'desc'));
+    unsubTodos = onSnapshot(todosQ, (snap) => {
+      setSyncing(true);
+      todosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTodos();
+      renderWidgets();
+      setSyncing(false);
+    });
+
+    const examsQ = query(collection(db, `users/${uid}/exams`), orderBy('dt', 'asc'));
+    unsubExams = onSnapshot(examsQ, (snap) => {
+      setSyncing(true);
+      examsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderExams();
+      renderWidgets();
+      setSyncing(false);
+    });
+  }
+
+  function setSyncing(v) {
+    const dot = document.getElementById('sync-dot');
+    if (!dot) return;
+    dot.className = v ? 'sync-dot syncing' : 'sync-dot';
+  }
+
+  // ── TODOS ──
+  window.addTodo = async function() {
+    if (!currentUser) return;
+    const inp = document.getElementById('todo-input');
+    const prio = document.getElementById('todo-prio').value;
+    const text = inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    setSyncing(true);
+    try {
+      await addDoc(collection(db, `users/${currentUser.uid}/todos`), {
+        text, prio, done: false, createdAt: serverTimestamp()
+      });
+      showNotif('Task added!');
+    } catch(e) { showNotif('Error: ' + e.message); }
+    setSyncing(false);
+  };
+
+  window.toggleTodo = async function(id, currentDone) {
+    if (!currentUser) return;
+    try {
+      await updateDoc(doc(db, `users/${currentUser.uid}/todos`, id), { done: !currentDone });
+    } catch(e) { console.error(e); }
+  };
+
+  window.deleteTodo = async function(id) {
+    if (!currentUser) return;
+    try {
+      await deleteDoc(doc(db, `users/${currentUser.uid}/todos`, id));
+      showNotif('Task removed');
+    } catch(e) { console.error(e); }
+  };
+
+  // ── EXAMS ──
+  window.addExam = async function() {
+    if (!currentUser) return;
+    const name = document.getElementById('exam-name').value.trim();
+    const dt = document.getElementById('exam-dt').value;
+    const icon = document.getElementById('exam-icon-select').value;
+    if (!name || !dt) { showNotif('Fill in name and date!'); return; }
+    document.getElementById('exam-name').value = '';
+    document.getElementById('exam-dt').value = '';
+    setSyncing(true);
+    try {
+      await addDoc(collection(db, `users/${currentUser.uid}/exams`), { name, dt, icon, createdAt: serverTimestamp() });
+      showNotif('Exam added!');
+    } catch(e) { showNotif('Error: ' + e.message); }
+    setSyncing(false);
+  };
+
+  window.deleteExam = async function(id) {
+    if (!currentUser) return;
+    try {
+      await deleteDoc(doc(db, `users/${currentUser.uid}/exams`, id));
+      showNotif('Exam removed');
+    } catch(e) { console.error(e); }
+  };
+
+  // ── RENDER TODOS ──
+  window.renderTodos = function() {
+    const list = document.getElementById('todo-full-list');
+    const total = todosCache.length;
+    const done = todosCache.filter(x => x.done).length;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-done').textContent = done;
+    document.getElementById('stat-left').textContent = total - done;
+
+    if (!total) {
+      list.innerHTML = '<div class="empty-state"><div class="big">📝</div>Start adding tasks above!</div>';
+      return;
+    }
+    const pOrder = { high:0, med:1, low:2 };
+    const sorted = [...todosCache].sort((a,b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      return pOrder[a.prio] - pOrder[b.prio];
+    });
+    list.innerHTML = sorted.map(t => `
+      <div class="todo-item-full ${t.done ? 'done-item' : ''}">
+        <button class="check-box ${t.done ? 'checked' : ''}" onclick="toggleTodo('${t.id}',${t.done})">${t.done ? '✓' : ''}</button>
+        <span class="todo-item-text">${esc(t.text)}</span>
+        <span class="todo-prio prio-${t.prio}">${t.prio}</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteTodo('${t.id}')">✕</button>
+      </div>
+    `).join('');
+  };
+
+  // ── RENDER EXAMS ──
+  window.renderExams = function() {
+    const list = document.getElementById('exam-list');
+    if (!examsCache.length) {
+      list.innerHTML = '<div class="empty-state"><div class="big">🎓</div>No exams added yet!</div>';
+      return;
+    }
+    list.innerHTML = examsCache.map(e => {
+      const cd = getCountdown(e.dt);
+      const passed = !cd;
+      const dateStr = new Date(e.dt).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+      let urgency = 'ok';
+      if (cd) { if (cd.d < 1) urgency = 'soon'; else if (cd.d < 3) urgency = 'close'; }
+      const countHtml = passed
+        ? `<span style="font-size:11px;color:var(--muted);font-style:italic">Completed</span>`
+        : `<div class="exam-countdown-inline">
+            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.d)}</div><div class="exam-unit-lbl">Days</div></div>
+            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.h)}</div><div class="exam-unit-lbl">Hrs</div></div>
+            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.m)}</div><div class="exam-unit-lbl">Min</div></div>
+            <div class="exam-unit"><div class="exam-unit-num" data-exam-s="${e.id}">${pad(cd.s)}</div><div class="exam-unit-lbl">Sec</div></div>
+            <div class="urgency-dot urgency-${urgency}"></div>
+          </div>`;
+      return `
+        <div class="exam-card ${passed ? 'passed' : ''}">
+          <div class="exam-icon">${e.icon}</div>
+          <div class="exam-info">
+            <div class="exam-name">${esc(e.name)}</div>
+            <div class="exam-date-str">${dateStr}</div>
+          </div>
+          ${countHtml}
+          <button class="btn btn-danger btn-sm" onclick="deleteExam('${e.id}')">✕</button>
+        </div>`;
+    }).join('');
+  };
+
+  // ── RENDER WIDGETS ──
+  window.renderWidgets = function() {
+    document.getElementById('home-date').textContent =
+      new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // Todo widget
+    const wl = document.getElementById('widget-todo-list');
+    if (!todosCache.length) {
+      wl.innerHTML = '<div class="empty-state"><div class="big">✓</div>No tasks yet</div>';
+    } else {
+      const pOrder = { high:0, med:1, low:2 };
+      const sorted = [...todosCache].sort((a,b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        return pOrder[a.prio] - pOrder[b.prio];
+      }).slice(0, 8);
+      wl.innerHTML = sorted.map(t => `
+        <div class="todo-item-preview">
+          <div class="todo-check-mini ${t.done ? 'done' : ''}"></div>
+          <span class="todo-text-preview ${t.done ? 'done' : ''}">${esc(t.text)}</span>
+          <span class="todo-prio prio-${t.prio}">${t.prio}</span>
+        </div>`).join('');
+    }
+
+    // Exam widget
+    const ec = document.getElementById('widget-exam-content');
+    const upcoming = examsCache.filter(e => getCountdown(e.dt));
+    if (!upcoming.length) {
+      ec.innerHTML = '<div class="empty-state" style="padding:20px"><div class="big">📅</div>No exams scheduled</div>';
+    } else {
+      const next = upcoming[0];
+      const cd = getCountdown(next.dt);
+      ec.innerHTML = `
+        <div class="next-exam-name">${next.icon} ${esc(next.name)}</div>
+        <div class="countdown-grid">
+          <div class="count-unit"><div class="count-num" id="w-ex-d">${pad(cd.d)}</div><div class="count-lbl">Days</div></div>
+          <div class="count-unit"><div class="count-num" id="w-ex-h">${pad(cd.h)}</div><div class="count-lbl">Hours</div></div>
+          <div class="count-unit"><div class="count-num" id="w-ex-m">${pad(cd.m)}</div><div class="count-lbl">Mins</div></div>
+          <div class="count-unit"><div class="count-num" id="w-ex-s">${pad(cd.s)}</div><div class="count-lbl">Secs</div></div>
+        </div>`;
+    }
+  };
+
+  // Expose cache for global tick
+  window._getCache = () => ({ todosCache, examsCache });
+</script>
+
+<script>
+  /* ── HELPERS ── */
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function pad(n) { return String(n).padStart(2,'0'); }
+  function getCountdown(dtStr) {
+    const diff = new Date(dtStr) - new Date();
+    if (diff <= 0) return null;
+    const t = Math.floor(diff / 1000);
+    return { d:Math.floor(t/86400), h:Math.floor((t%86400)/3600), m:Math.floor((t%3600)/60), s:t%60 };
+  }
+  function showNotif(msg) {
+    const el = document.getElementById('notif');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  /* ── PAGE NAV ── */
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    document.getElementById('nav-' + id).classList.add('active');
+    if (id === 'home') renderWidgets();
+  }
+
+  /* ── POMODORO ── */
+  let pomoRunning = false, pomoInterval = null, pomoMode = 'work';
+  let pomoSettings = { work:25, short:5, long:15 };
+  let pomoSecondsLeft = 25*60, pomoTotalSeconds = 25*60;
+  let pomoSessions = 0, pomoFocusMinutes = 0, pomoSessionNum = 1;
+
+  function updatePomoSettings() {
+    pomoSettings.work = parseInt(document.getElementById('set-work').value)||25;
+    pomoSettings.short = parseInt(document.getElementById('set-short').value)||5;
+    pomoSettings.long = parseInt(document.getElementById('set-long').value)||15;
+    if (!pomoRunning) { pomoTotalSeconds = pomoSettings[pomoMode]*60; pomoSecondsLeft = pomoTotalSeconds; renderPomoDisplay(); }
+  }
+  function setPomoMode(mode, btn) {
+    if (pomoRunning) resetPomo();
+    pomoMode = mode;
+    document.querySelectorAll('.pomo-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    pomoTotalSeconds = pomoSettings[mode]*60; pomoSecondsLeft = pomoTotalSeconds;
+    updateRingColor(); renderPomoDisplay();
+  }
+  function updateRingColor() {
+    const ring = document.getElementById('pomo-ring');
+    const badge = document.getElementById('widget-pomo-badge');
+    if (pomoMode === 'work') {
+      ring.style.stroke = 'var(--accent)';
+      if (badge) { badge.className='pomo-mode-badge work'; badge.textContent='Work Session'; }
+    } else {
+      ring.style.stroke = 'var(--green)';
+      if (badge) { badge.className='pomo-mode-badge break'; badge.textContent='Break Time'; }
+    }
+  }
+  function renderPomoDisplay() {
+    const m = Math.floor(pomoSecondsLeft/60), s = pomoSecondsLeft%60;
+    const str = `${pad(m)}:${pad(s)}`;
+    document.getElementById('pomo-display').textContent = str;
+    document.getElementById('widget-pomo-time').textContent = str;
+    const progress = pomoSecondsLeft / pomoTotalSeconds;
+    document.getElementById('pomo-ring').style.strokeDashoffset = 753.98*(1-progress);
+    const bar = document.getElementById('widget-pomo-bar');
+    if (bar) bar.style.width = (progress*100)+'%';
+    const labels = { work:'Work Session', short:'Short Break', long:'Long Break' };
+    document.getElementById('pomo-label').textContent = labels[pomoMode];
+    document.getElementById('pomo-session-count').textContent = `Session ${pomoSessionNum}`;
+  }
+  function togglePomo() {
+    if (pomoRunning) {
+      clearInterval(pomoInterval); pomoRunning = false;
+      document.getElementById('pomo-play-btn').textContent = '▶';
+    } else {
+      pomoRunning = true;
+      document.getElementById('pomo-play-btn').textContent = '⏸';
+      pomoInterval = setInterval(() => {
+        pomoSecondsLeft--;
+        renderPomoDisplay();
+        if (pomoSecondsLeft <= 0) {
+          clearInterval(pomoInterval); pomoRunning = false;
+          document.getElementById('pomo-play-btn').textContent = '▶';
+          onPomoComplete();
+        }
+      }, 1000);
+    }
+  }
+  function onPomoComplete() {
+    if (pomoMode === 'work') {
+      pomoSessions++; pomoFocusMinutes += pomoSettings.work; pomoSessionNum++;
+      document.getElementById('stat-sessions').textContent = pomoSessions;
+      document.getElementById('stat-focus-time').textContent = pomoFocusMinutes+'m';
+      showNotif('🍅 Session complete! Take a break.');
+      autoSwitchPomo(pomoSessions % 4 === 0 ? 'long' : 'short');
+    } else { showNotif('⚡ Break over! Back to work.'); autoSwitchPomo('work'); }
+  }
+  function autoSwitchPomo(mode) {
+    pomoMode = mode;
+    const tabs = document.querySelectorAll('.pomo-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    const idx = { work:0, short:1, long:2 };
+    tabs[idx[mode]].classList.add('active');
+    pomoTotalSeconds = pomoSettings[mode]*60; pomoSecondsLeft = pomoTotalSeconds;
+    updateRingColor(); renderPomoDisplay();
+  }
+  function resetPomo() {
+    clearInterval(pomoInterval); pomoRunning = false;
+    document.getElementById('pomo-play-btn').textContent = '▶';
+    pomoTotalSeconds = pomoSettings[pomoMode]*60; pomoSecondsLeft = pomoTotalSeconds;
+    renderPomoDisplay();
+  }
+  function skipPomo() { clearInterval(pomoInterval); pomoRunning = false; document.getElementById('pomo-play-btn').textContent = '▶'; onPomoComplete(); }
+
+  /* ── GLOBAL TICK ── */
+  setInterval(() => {
+    const cache = window._getCache ? window._getCache() : { examsCache:[] };
+    const exams = cache.examsCache || [];
+
+    // Tick exam seconds on exam page
+    exams.forEach(e => {
+      const cd = getCountdown(e.dt);
+      if (!cd) return;
+      const el = document.querySelector(`[data-exam-s="${e.id}"]`);
+      if (el) el.textContent = pad(cd.s);
+    });
+
+    // Widget exam tick
+    const upcoming = exams.filter(e => getCountdown(e.dt));
+    if (upcoming.length) {
+      const cd = getCountdown(upcoming[0].dt);
+      if (cd) {
+        ['d','h','m','s'].forEach((u,i) => {
+          const el = document.getElementById('w-ex-'+u);
+          if (el) el.textContent = pad([cd.d,cd.h,cd.m,cd.s][i]);
+        });
+      }
+    }
+
+    // Full re-render every minute
+    if (new Date().getSeconds() === 0) {
+      if (window.renderExams) renderExams();
+      if (window.renderWidgets) renderWidgets();
+    }
+  }, 1000);
+
+  renderPomoDisplay();
+  updateRingColor();
+</script>
+
+<footer style="padding:16px 36px; border-top:1px solid var(--border); color:var(--muted); font-size:11px; text-align:right;">
+  version 1.2.0
+</footer>
+
+</body>
+</html>
