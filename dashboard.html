@@ -100,10 +100,11 @@
   .card-label::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); display:inline-block; }
 
   /* ── DASHBOARD ── */
-  .dashboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .dashboard-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
   .widget-pomo { grid-column:1; grid-row:1; }
   .widget-todo { grid-column:2; grid-row:1/3; }
   .widget-exam { grid-column:1; grid-row:2; }
+  .widget-files { grid-column:3; grid-row:1/3; }
 
   .pomo-display { text-align:center; padding:16px 0 8px; }
   .pomo-time-big { font-family:'Fraunces',serif; font-size:56px; font-weight:300; color:var(--accent); letter-spacing:-2px; line-height:1; font-variant-numeric:tabular-nums; }
@@ -131,6 +132,14 @@
   .prio-high { background:rgba(255,68,68,0.15); color:var(--danger); }
   .prio-med { background:rgba(255,107,53,0.15); color:var(--accent2); }
   .prio-low { background:rgba(77,255,145,0.12); color:var(--green); }
+
+  .files-list-preview { display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; }
+  .files-list-preview::-webkit-scrollbar { width:4px; }
+  .files-list-preview::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  .file-item-preview { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface2); border-radius:8px; border:1px solid var(--border); }
+  .file-icon-mini { font-size:16px; flex-shrink:0; }
+  .file-name-preview { font-size:12px; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .file-size-badge { font-size:9px; padding:2px 7px; border-radius:6px; background:var(--surface); color:var(--muted); }
 
   /* ── TODO PAGE ── */
   .todo-add-form { display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
@@ -322,6 +331,14 @@
           <div class="empty-state" style="padding:20px"><div class="big">📅</div>No exams scheduled</div>
         </div>
         <button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="showPage('exam')">Add Exam →</button>
+      </div>
+
+      <div class="card widget-files">
+        <div class="card-label">Files</div>
+        <div id="widget-files-list" class="files-list-preview">
+          <div class="empty-state"><div class="big">📄</div>No files yet</div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="showPage('pdf')">Manage Files →</button>
       </div>
     </div>
   </div>
@@ -811,6 +828,23 @@
           <div class="count-unit"><div class="count-num" id="w-ex-m">${pad(cd.m)}</div><div class="count-lbl">Mins</div></div>
           <div class="count-unit"><div class="count-num" id="w-ex-s">${pad(cd.s)}</div><div class="count-lbl">Secs</div></div>
         </div>`;
+    }
+
+    // Files widget
+    const fl = document.getElementById('widget-files-list');
+    if (!pdfCache.length) {
+      fl.innerHTML = '<div class="empty-state"><div class="big">📄</div>No files yet</div>';
+    } else {
+      const recent = pdfCache.slice(0, 6);
+      fl.innerHTML = recent.map(f => {
+        const sizeKB = (f.size / 1024).toFixed(1);
+        return `
+          <div class="file-item-preview">
+            <div class="file-icon-mini">📄</div>
+            <span class="file-name-preview">${esc(f.name)}</span>
+            <span class="file-size-badge">${sizeKB} KB</span>
+          </div>`;
+      }).join('');
     }
   };
 
