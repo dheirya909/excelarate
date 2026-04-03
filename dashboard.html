@@ -65,7 +65,6 @@
   .nav-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
   .nav-btn.active .label { color:var(--bg); }
 
-  /* User avatar at bottom */
   .sidebar-bottom { margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:8px; }
   .user-avatar {
     width:36px; height:36px; border-radius:50%;
@@ -105,6 +104,7 @@
   .widget-todo { grid-column:2; grid-row:1/3; }
   .widget-exam { grid-column:1; grid-row:2; }
   .widget-files { grid-column:3; grid-row:1/3; }
+  .widget-music { grid-column:1/4; }
 
   .pomo-display { text-align:center; padding:16px 0 8px; }
   .pomo-time-big { font-family:'Fraunces',serif; font-size:56px; font-weight:300; color:var(--accent); letter-spacing:-2px; line-height:1; font-variant-numeric:tabular-nums; }
@@ -124,7 +124,7 @@
   .todo-list-preview::-webkit-scrollbar { width:4px; }
   .todo-list-preview::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
   .todo-item-preview { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface2); border-radius:8px; border:1px solid var(--border); }
-  .todo-check-mini { width:14px; height:14px; border-radius:4px; border:1px solid var(--muted); flex-shrink:0; }
+  .todo-check-mini { width:14px; height:14px; border-radius:4px; border:1px solid var(--muted); flex-shrink:0; cursor:pointer; }
   .todo-check-mini.done { background:var(--green); border-color:var(--green); }
   .todo-text-preview { font-size:12px; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .todo-text-preview.done { text-decoration:line-through; color:var(--muted); }
@@ -244,13 +244,63 @@
   .pdf-modal-body { flex:1; overflow:hidden; }
   .pdf-modal-body iframe { width:100%; height:100%; border:none; }
 
+  /* ── MUSIC PLAYER ── */
+  .music-container { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .music-player-card { grid-column:1; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; }
+  .music-list-card { grid-column:2; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; }
+
+  .music-player { display:flex; flex-direction:column; gap:16px; }
+  .music-player-info { text-align:center; }
+  .music-song-title { font-family:'Syne',sans-serif; font-weight:700; font-size:20px; color:var(--text); margin-bottom:4px; }
+  .music-song-artist { font-size:12px; color:var(--muted); }
+
+  .music-player-bar-container { user-select:none; }
+  .music-player-bar { height:4px; background:var(--surface2); border-radius:2px; cursor:pointer; overflow:hidden; }
+  .music-player-bar-fill { height:100%; background:var(--accent); border-radius:2px; width:0%; transition:width 0.1s linear; }
+
+  .music-controls { display:flex; gap:8px; justify-content:center; align-items:center; }
+  .music-control-btn { width:44px; height:44px; border-radius:10px; border:1px solid var(--border); background:none; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:all 0.2s; }
+  .music-control-btn:hover { color:var(--text); border-color:var(--muted); }
+  .music-control-btn.music-play-btn { width:52px; height:52px; background:var(--accent); color:var(--bg); border-color:var(--accent); font-size:20px; }
+  .music-control-btn.music-play-btn:hover { transform:scale(1.06); }
+  .music-control-btn.active { color:var(--accent); border-color:var(--accent); }
+
+  .music-list { display:flex; flex-direction:column; gap:8px; max-height:500px; overflow-y:auto; }
+  .music-list::-webkit-scrollbar { width:4px; }
+  .music-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+  .music-item { display:flex; align-items:center; gap:12px; padding:12px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; cursor:pointer; transition:all 0.2s; }
+  .music-item:hover { border-color:var(--muted); background:rgba(232,255,71,0.05); }
+  .music-item.playing { background:rgba(232,255,71,0.1); border-color:var(--accent); }
+
+  .music-item-icon { font-size:16px; flex-shrink:0; }
+  .music-item-info { flex:1; overflow:hidden; min-width:0; }
+  .music-item-name { font-size:12px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .music-item-size { font-size:10px; color:var(--muted); margin-top:2px; }
+
+  .music-item-delete { width:28px; height:28px; border-radius:6px; background:none; border:1px solid rgba(255,68,68,0.3); color:var(--danger); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; }
+  .music-item-delete:hover { background:rgba(255,68,68,0.15); border-color:var(--danger); }
+
+  /* Music widget */
+  .music-widget { display:flex; gap:16px; align-items:center; }
+  .music-widget-img { width:80px; height:80px; border-radius:12px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:32px; flex-shrink:0; }
+  .music-widget-info { flex:1; min-width:0; }
+  .music-widget-title { font-family:'Syne',sans-serif; font-weight:700; font-size:14px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .music-widget-artist { font-size:11px; color:var(--muted); margin-top:2px; }
+  .music-widget-controls { display:flex; gap:6px; margin-top:8px; }
+  .music-widget-btn { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:none; color:var(--muted); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .music-widget-btn:hover { color:var(--text); border-color:var(--muted); }
+  .music-widget-btn.playing { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+
   ::-webkit-scrollbar { width:6px; }
   ::-webkit-scrollbar-track { background:var(--surface); }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 
   @media(max-width:768px) {
+    .music-container { grid-template-columns:1fr; }
+    .music-player-card,.music-list-card { grid-column:1; }
     .dashboard-grid { grid-template-columns:1fr; }
-    .widget-todo,.widget-exam { grid-column:1; grid-row:auto; }
+    .widget-todo,.widget-exam,.widget-music { grid-column:1; grid-row:auto; }
     .exam-add-form { grid-template-columns:1fr 1fr; }
     .main { padding:20px 16px; }
   }
@@ -282,6 +332,9 @@
   </button>
   <button class="nav-btn" onclick="showPage('pdf')" id="nav-pdf">
     <span>📄</span><span class="label">Files</span>
+  </button>
+  <button class="nav-btn" onclick="showPage('music')" id="nav-music">
+    <span>🎵</span><span class="label">Music</span>
   </button>
   <div class="sidebar-bottom">
     <div class="user-avatar" id="user-avatar" title="Signed in">?</div>
@@ -339,6 +392,14 @@
           <div class="empty-state"><div class="big">📄</div>No files yet</div>
         </div>
         <button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="showPage('pdf')">Manage Files →</button>
+      </div>
+
+      <div class="card widget-music">
+        <div class="card-label">Music</div>
+        <div id="widget-music-content">
+          <div class="empty-state"><div class="big">🎵</div>No songs yet</div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="showPage('music')">Play Music →</button>
       </div>
     </div>
   </div>
@@ -467,6 +528,64 @@
     </div>
   </div>
 
+  <!-- ══ MUSIC ══ -->
+  <div class="page" id="page-music">
+    <div class="page-header">
+      <h1 class="page-title">Music</h1>
+      <span class="page-sub">Create and play playlists</span>
+    </div>
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-label">Upload MP3</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+        <div style="flex:1;min-width:200px">
+          <input type="file" id="music-file" accept=".mp3" style="margin-bottom:12px">
+          <input type="text" class="input-field" id="music-name" placeholder="Song name (optional)">
+        </div>
+        <button class="btn btn-accent" onclick="uploadMusic()">Upload</button>
+      </div>
+    </div>
+
+    <div class="music-container">
+      <div class="music-player-card">
+        <div class="card-label">Now Playing</div>
+        <div class="music-player">
+          <div class="music-player-info">
+            <div class="music-song-title" id="music-now-title">No song playing</div>
+            <div class="music-song-artist" id="music-now-artist">Select a song to play</div>
+          </div>
+          <div class="music-player-bar-container">
+            <div class="music-player-bar" id="music-progress-bar">
+              <div class="music-player-bar-fill" id="music-progress-fill"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px">
+              <span id="music-current-time">0:00</span>
+              <span id="music-total-time">0:00</span>
+            </div>
+          </div>
+          <audio id="audio-player" style="display:none;width:100%"></audio>
+          <div class="music-controls">
+            <button class="music-control-btn" onclick="toggleShuffle()" id="shuffle-btn" title="Shuffle">🔀</button>
+            <button class="music-control-btn" onclick="previousMusic()" title="Previous">⏮</button>
+            <button class="music-control-btn music-play-btn" id="play-btn" onclick="togglePlayMusic()">▶</button>
+            <button class="music-control-btn" onclick="nextMusic()" title="Next">⏭</button>
+            <button class="music-control-btn" id="repeat-btn" onclick="cycleRepeat()" title="Repeat Off">🔁</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+            <span style="font-size:10px;color:var(--muted)">Volume:</span>
+            <input type="range" id="volume-slider" min="0" max="100" value="70" oninput="setVolume(this.value)" style="flex:1;cursor:pointer">
+          </div>
+        </div>
+      </div>
+
+      <div class="music-list-card">
+        <div class="card-label">Playlist</div>
+        <div id="music-list" class="music-list">
+          <div class="empty-state"><div class="big">🎵</div>No songs uploaded yet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <div class="notif" id="notif"></div>
@@ -484,376 +603,12 @@
   </div>
 </div>
 
-<!-- FIREBASE -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot,
-    query, orderBy, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-  // ════════════════════════════════════════
-  // 🔥 PASTE YOUR FIREBASE CONFIG HERE
-  // (same config as index.html)
-  // ════════════════════════════════════════
-  const firebaseConfig = {
-  apiKey: "AIzaSyBs7oaWeJaGSABLIZTHw_e3FKqjXZEfWl0",
-  authDomain: "excelarate-42dfe.firebaseapp.com",
-  projectId: "excelarate-42dfe",
-  storageBucket: "excelarate-42dfe.firebasestorage.app",
-  messagingSenderId: "912173507507",
-  appId: "1:912173507507:web:62a80ec070a40678c1e1c6"
-};
-
-  // ════════════════════════════════════════
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
-
-  let currentUser = null;
-  let todosCache = [];
-  let examsCache = [];
-  let pdfCache = [];
-  let unsubTodos = null;
-  let unsubExams = null;
-  let unsubPdf = null;
-
-  // ── AUTH GUARD ──
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      window.location.href = 'index.html';
-      return;
-    }
-    currentUser = user;
-    document.getElementById('auth-guard').style.display = 'none';
-    document.getElementById('sidebar').style.display = 'flex';
-    document.getElementById('main-content').style.display = 'block';
-
-    // Set avatar
-    const av = document.getElementById('user-avatar');
-    av.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
-    av.title = user.displayName || user.email;
-
-    subscribeData();
-    renderWidgets();
-    window._dbReady = true;
-    loadPomoState();
-  });
-
-  window.doSignOut = async function() {
-    if (unsubTodos) unsubTodos();
-    if (unsubExams) unsubExams();
-    if (unsubPdf) unsubPdf();
-    await signOut(auth);
-    window.location.href = 'index.html';
-  };
-
-  // ── FIRESTORE SUBSCRIPTIONS ──
-  function subscribeData() {
-    const uid = currentUser.uid;
-
-    const todosQ = query(collection(db, `users/${uid}/todos`), orderBy('createdAt', 'desc'));
-    unsubTodos = onSnapshot(todosQ, (snap) => {
-      setSyncing(true);
-      todosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderTodos();
-      renderWidgets();
-      setSyncing(false);
-    });
-
-    const examsQ = query(collection(db, `users/${uid}/exams`), orderBy('dt', 'asc'));
-    unsubExams = onSnapshot(examsQ, (snap) => {
-      setSyncing(true);
-      examsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderExams();
-      renderWidgets();
-      setSyncing(false);
-    });
-
-    const pdfQ = query(collection(db, `users/${uid}/pdfs`), orderBy('uploadedAt', 'desc'));
-    unsubPdf = onSnapshot(pdfQ, (snap) => {
-      setSyncing(true);
-      pdfCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderPdfs();
-      setSyncing(false);
-    });
-  }
-
-  function setSyncing(v) {
-    const dot = document.getElementById('sync-dot');
-    if (!dot) return;
-    dot.className = v ? 'sync-dot syncing' : 'sync-dot';
-  }
-
-  // ── TODOS ──
-  window.addTodo = async function() {
-    if (!currentUser) return;
-    const inp = document.getElementById('todo-input');
-    const prio = document.getElementById('todo-prio').value;
-    const text = inp.value.trim();
-    if (!text) return;
-    inp.value = '';
-    setSyncing(true);
-    try {
-      await addDoc(collection(db, `users/${currentUser.uid}/todos`), {
-        text, prio, done: false, createdAt: serverTimestamp()
-      });
-      showNotif('Task added!');
-    } catch(e) { showNotif('Error: ' + e.message); }
-    setSyncing(false);
-  };
-
-  window.toggleTodo = async function(id, currentDone) {
-    if (!currentUser) return;
-    try {
-      await updateDoc(doc(db, `users/${currentUser.uid}/todos`, id), { done: !currentDone });
-    } catch(e) { console.error(e); }
-  };
-
-  window.deleteTodo = async function(id) {
-    if (!currentUser) return;
-    try {
-      await deleteDoc(doc(db, `users/${currentUser.uid}/todos`, id));
-      showNotif('Task removed');
-    } catch(e) { console.error(e); }
-  };
-
-  // ── EXAMS ──
-  window.addExam = async function() {
-    if (!currentUser) return;
-    const name = document.getElementById('exam-name').value.trim();
-    const dt = document.getElementById('exam-dt').value;
-    const icon = document.getElementById('exam-icon-select').value;
-    if (!name || !dt) { showNotif('Fill in name and date!'); return; }
-    document.getElementById('exam-name').value = '';
-    document.getElementById('exam-dt').value = '';
-    setSyncing(true);
-    try {
-      await addDoc(collection(db, `users/${currentUser.uid}/exams`), { name, dt, icon, createdAt: serverTimestamp() });
-      showNotif('Exam added!');
-    } catch(e) { showNotif('Error: ' + e.message); }
-    setSyncing(false);
-  };
-
-  window.deleteExam = async function(id) {
-    if (!currentUser) return;
-    try {
-      await deleteDoc(doc(db, `users/${currentUser.uid}/exams`, id));
-      showNotif('Exam removed');
-    } catch(e) { console.error(e); }
-  };
-
-  // ── PDFS ──
-  window.uploadPdf = async function() {
-    if (!currentUser) { showNotif('Please sign in first!'); return; }
-    const fileInput = document.getElementById('pdf-file');
-    const file = fileInput.files[0];
-    if (!file) { showNotif('Select a PDF file first!'); return; }
-    if (!file.name.toLowerCase().endsWith('.pdf')) { showNotif('Only PDF files are allowed!'); return; }
-    if (file.size > 5 * 1024 * 1024) { showNotif('File too large (max 5MB)!'); return; }
-    setSyncing(true);
-    try {
-      // Convert file to base64
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        const base64Data = e.target.result.split(',')[1];
-        await addDoc(collection(db, `users/${currentUser.uid}/pdfs`), {
-          name: file.name,
-          data: base64Data,
-          size: file.size,
-          uploadedAt: serverTimestamp()
-        });
-        fileInput.value = '';
-        showNotif('PDF uploaded!');
-        setSyncing(false);
-      };
-      reader.readAsDataURL(file);
-    } catch(e) { showNotif('Error: ' + e.message); console.error(e); setSyncing(false); }
-  };
-
-  window.deletePdf = async function(id) {
-    if (!currentUser) return;
-    try {
-      await deleteDoc(doc(db, `users/${currentUser.uid}/pdfs`, id));
-      showNotif('PDF removed');
-    } catch(e) { console.error(e); }
-  };
-
-  window.viewPdf = function(base64Data, fileName) {
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    document.getElementById('pdf-modal-title').textContent = fileName || 'PDF Viewer';
-    document.getElementById('pdf-modal-iframe').src = url;
-    document.getElementById('pdf-modal').classList.add('show');
-  };
-
-  window.closePdfModal = function() {
-    document.getElementById('pdf-modal').classList.remove('show');
-    document.getElementById('pdf-modal-iframe').src = '';
-  };
-
-  // ── RENDER TODOS ──
-  window.renderTodos = function() {
-    const list = document.getElementById('todo-full-list');
-    const total = todosCache.length;
-    const done = todosCache.filter(x => x.done).length;
-    document.getElementById('stat-total').textContent = total;
-    document.getElementById('stat-done').textContent = done;
-    document.getElementById('stat-left').textContent = total - done;
-
-    if (!total) {
-      list.innerHTML = '<div class="empty-state"><div class="big">📝</div>Start adding tasks above!</div>';
-      return;
-    }
-    const pOrder = { high:0, med:1, low:2 };
-    const sorted = [...todosCache].sort((a,b) => {
-      if (a.done !== b.done) return a.done ? 1 : -1;
-      return pOrder[a.prio] - pOrder[b.prio];
-    });
-    list.innerHTML = sorted.map(t => `
-      <div class="todo-item-full ${t.done ? 'done-item' : ''}">
-        <button class="check-box ${t.done ? 'checked' : ''}" onclick="toggleTodo('${t.id}',${t.done})">${t.done ? '✓' : ''}</button>
-        <span class="todo-item-text">${esc(t.text)}</span>
-        <span class="todo-prio prio-${t.prio}">${t.prio}</span>
-        <button class="btn btn-danger btn-sm" onclick="deleteTodo('${t.id}')">✕</button>
-      </div>
-    `).join('');
-  };
-
-  // ── RENDER EXAMS ──
-  window.renderExams = function() {
-    const list = document.getElementById('exam-list');
-    if (!examsCache.length) {
-      list.innerHTML = '<div class="empty-state"><div class="big">🎓</div>No exams added yet!</div>';
-      return;
-    }
-    list.innerHTML = examsCache.map(e => {
-      const cd = getCountdown(e.dt);
-      const passed = !cd;
-      const dateStr = new Date(e.dt).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
-      let urgency = 'ok';
-      if (cd) { if (cd.d < 1) urgency = 'soon'; else if (cd.d < 3) urgency = 'close'; }
-      const countHtml = passed
-        ? `<span style="font-size:11px;color:var(--muted);font-style:italic">Completed</span>`
-        : `<div class="exam-countdown-inline">
-            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.d)}</div><div class="exam-unit-lbl">Days</div></div>
-            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.h)}</div><div class="exam-unit-lbl">Hrs</div></div>
-            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.m)}</div><div class="exam-unit-lbl">Min</div></div>
-            <div class="exam-unit"><div class="exam-unit-num" data-exam-s="${e.id}">${pad(cd.s)}</div><div class="exam-unit-lbl">Sec</div></div>
-            <div class="urgency-dot urgency-${urgency}"></div>
-          </div>`;
-      return `
-        <div class="exam-card ${passed ? 'passed' : ''}">
-          <div class="exam-icon">${e.icon}</div>
-          <div class="exam-info">
-            <div class="exam-name">${esc(e.name)}</div>
-            <div class="exam-date-str">${dateStr}</div>
-          </div>
-          ${countHtml}
-          <button class="btn btn-danger btn-sm" onclick="deleteExam('${e.id}')">✕</button>
-        </div>`;
-    }).join('');
-  };
-
-  // ── RENDER PDFS ──
-  window.renderPdfs = function() {
-    const list = document.getElementById('pdf-list');
-    if (!pdfCache.length) {
-      list.innerHTML = '<div class="empty-state"><div class="big">📄</div>No files uploaded yet!</div>';
-      return;
-    }
-    list.innerHTML = pdfCache.map(p => {
-      const sizeKB = (p.size / 1024).toFixed(1);
-      const uploaded = new Date(p.uploadedAt?.seconds * 1000).toLocaleDateString('en-IN');
-      return `
-        <div class="exam-card">
-          <div class="exam-icon">📄</div>
-          <div class="exam-info">
-            <div class="exam-name">${esc(p.name)}</div>
-            <div class="exam-date-str">${sizeKB} KB • Uploaded ${uploaded}</div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost btn-sm" onclick="viewPdf('${p.data}', '${esc(p.name)}')">View</button>
-            <button class="btn btn-danger btn-sm" onclick="deletePdf('${p.id}')">✕</button>
-          </div>
-        </div>`;
-    }).join('');
-  };
-
-  // ── RENDER WIDGETS ──
-  window.renderWidgets = function() {
-    document.getElementById('home-date').textContent =
-      new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
-    // Todo widget
-    const wl = document.getElementById('widget-todo-list');
-    if (!todosCache.length) {
-      wl.innerHTML = '<div class="empty-state"><div class="big">✓</div>No tasks yet</div>';
-    } else {
-      const pOrder = { high:0, med:1, low:2 };
-      const sorted = [...todosCache].sort((a,b) => {
-        if (a.done !== b.done) return a.done ? 1 : -1;
-        return pOrder[a.prio] - pOrder[b.prio];
-      }).slice(0, 8);
-      wl.innerHTML = sorted.map(t => `
-        <div class="todo-item-preview">
-          <div class="todo-check-mini ${t.done ? 'done' : ''}" onclick="toggleTodo('${t.id}',${t.done})"></div>
-          <span class="todo-text-preview ${t.done ? 'done' : ''}">${esc(t.text)}</span>
-          <span class="todo-prio prio-${t.prio}">${t.prio}</span>
-        </div>`).join('');
-    }
-
-    // Exam widget
-    const ec = document.getElementById('widget-exam-content');
-    const upcoming = examsCache.filter(e => getCountdown(e.dt));
-    if (!upcoming.length) {
-      ec.innerHTML = '<div class="empty-state" style="padding:20px"><div class="big">📅</div>No exams scheduled</div>';
-    } else {
-      const next = upcoming[0];
-      const cd = getCountdown(next.dt);
-      ec.innerHTML = `
-        <div class="next-exam-name">${next.icon} ${esc(next.name)}</div>
-        <div class="countdown-grid">
-          <div class="count-unit"><div class="count-num" id="w-ex-d">${pad(cd.d)}</div><div class="count-lbl">Days</div></div>
-          <div class="count-unit"><div class="count-num" id="w-ex-h">${pad(cd.h)}</div><div class="count-lbl">Hours</div></div>
-          <div class="count-unit"><div class="count-num" id="w-ex-m">${pad(cd.m)}</div><div class="count-lbl">Mins</div></div>
-          <div class="count-unit"><div class="count-num" id="w-ex-s">${pad(cd.s)}</div><div class="count-lbl">Secs</div></div>
-        </div>`;
-    }
-
-    // Files widget
-    const fl = document.getElementById('widget-files-list');
-    if (!pdfCache.length) {
-      fl.innerHTML = '<div class="empty-state"><div class="big">📄</div>No files yet</div>';
-    } else {
-      const recent = pdfCache.slice(0, 6);
-      fl.innerHTML = recent.map(f => {
-        const sizeKB = (f.size / 1024).toFixed(1);
-        return `
-          <div class="file-item-preview">
-            <div class="file-icon-mini">📄</div>
-            <span class="file-name-preview">${esc(f.name)}</span>
-            <span class="file-size-badge">${sizeKB} KB</span>
-          </div>`;
-      }).join('');
-    }
-  };
-
-  // Expose cache for global tick
-  window._getCache = () => ({ todosCache, examsCache, pdfCache });
-</script>
-
+<!-- ══════════════════════════════════════════════════════
+     SHARED HELPERS — available to both plain scripts
+     and the module below via window.*
+     ══════════════════════════════════════════════════════ -->
 <script>
-  /* ── HELPERS ── */
+  /* ── tiny utils ── */
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function pad(n) { return String(n).padStart(2,'0'); }
   function getCountdown(dtStr) {
@@ -866,19 +621,26 @@
     const el = document.getElementById('notif');
     el.textContent = msg;
     el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2800);
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2800);
+  }
+  function formatTime(seconds) {
+    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${String(secs).padStart(2,'0')}`;
   }
 
-  /* ── PAGE NAV ── */
+  /* ── page nav ── */
   function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
     document.getElementById('nav-' + id).classList.add('active');
-    if (id === 'home') renderWidgets();
+    if (id === 'home' && window.renderWidgets) window.renderWidgets();
   }
 
-  /* ── POMODORO ── */
+  /* ══ POMODORO ══ */
   let pomoRunning = false, pomoInterval = null, pomoMode = 'work';
   let pomoSettings = { work:25, short:5, long:15 };
   let pomoSecondsLeft = 25*60, pomoTotalSeconds = 25*60;
@@ -886,52 +648,33 @@
   let pomoLastSaved = Date.now();
 
   function savePomoState() {
-    const state = {
+    localStorage.setItem('pomoState', JSON.stringify({
       pomoRunning, pomoMode, pomoSettings, pomoSecondsLeft, pomoTotalSeconds,
       pomoSessions, pomoFocusMinutes, pomoSessionNum, pomoLastSaved: Date.now()
-    };
-    localStorage.setItem('pomoState', JSON.stringify(state));
+    }));
   }
-
   function loadPomoState() {
     const saved = localStorage.getItem('pomoState');
     if (!saved) return;
-    const state = JSON.parse(saved);
-    pomoRunning = state.pomoRunning || false;
-    pomoMode = state.pomoMode || 'work';
-    pomoSettings = state.pomoSettings || { work:25, short:5, long:15 };
-    pomoSecondsLeft = state.pomoSecondsLeft || 25*60;
-    pomoTotalSeconds = state.pomoTotalSeconds || 25*60;
-    pomoSessions = state.pomoSessions || 0;
-    pomoFocusMinutes = state.pomoFocusMinutes || 0;
-    pomoSessionNum = state.pomoSessionNum || 1;
-    pomoLastSaved = state.pomoLastSaved || Date.now();
-
-    // Adjust time if it was running
+    const st = JSON.parse(saved);
+    pomoRunning = st.pomoRunning || false;
+    pomoMode = st.pomoMode || 'work';
+    pomoSettings = st.pomoSettings || { work:25, short:5, long:15 };
+    pomoSecondsLeft = st.pomoSecondsLeft || 25*60;
+    pomoTotalSeconds = st.pomoTotalSeconds || 25*60;
+    pomoSessions = st.pomoSessions || 0;
+    pomoFocusMinutes = st.pomoFocusMinutes || 0;
+    pomoSessionNum = st.pomoSessionNum || 1;
+    pomoLastSaved = st.pomoLastSaved || Date.now();
     if (pomoRunning) {
       const elapsed = Math.floor((Date.now() - pomoLastSaved) / 1000);
       pomoSecondsLeft = Math.max(0, pomoSecondsLeft - elapsed);
-      if (pomoSecondsLeft <= 0) {
-        pomoRunning = false;
-        onPomoComplete();
-      } else {
-        // Resume the timer
-        pomoInterval = setInterval(() => {
-          pomoSecondsLeft--;
-          renderPomoDisplay();
-          if (pomoSecondsLeft <= 0) {
-            clearInterval(pomoInterval); pomoRunning = false;
-            document.getElementById('pomo-play-btn').textContent = '▶';
-            document.getElementById('widget-pomo-play-btn').textContent = '▶';
-            onPomoComplete();
-          }
-        }, 1000);
-        document.getElementById('pomo-play-btn').textContent = '⏸';
-        document.getElementById('widget-pomo-play-btn').textContent = '⏸';
+      if (pomoSecondsLeft <= 0) { pomoRunning = false; onPomoComplete(); }
+      else {
+        pomoInterval = setInterval(() => { pomoSecondsLeft--; renderPomoDisplay(); if(pomoSecondsLeft%10===0) savePomoState(); if(pomoSecondsLeft<=0){clearInterval(pomoInterval);pomoRunning=false;setPomoBtns('▶');onPomoComplete();} }, 1000);
+        setPomoBtns('⏸');
       }
     }
-
-    // Update UI
     document.getElementById('set-work').value = pomoSettings.work;
     document.getElementById('set-short').value = pomoSettings.short;
     document.getElementById('set-long').value = pomoSettings.long;
@@ -940,16 +683,18 @@
     document.getElementById('pomo-session-count').textContent = `Session ${pomoSessionNum}`;
     const tabs = document.querySelectorAll('.pomo-tab');
     tabs.forEach(t => t.classList.remove('active'));
-    const idx = { work:0, short:1, long:2 };
-    tabs[idx[pomoMode]].classList.add('active');
+    tabs[{work:0,short:1,long:2}[pomoMode]].classList.add('active');
     updateRingColor();
     renderPomoDisplay();
   }
-
+  function setPomoBtns(icon) {
+    document.getElementById('pomo-play-btn').textContent = icon;
+    document.getElementById('widget-pomo-play-btn').textContent = icon;
+  }
   function updatePomoSettings() {
-    pomoSettings.work = parseInt(document.getElementById('set-work').value)||25;
+    pomoSettings.work  = parseInt(document.getElementById('set-work').value)||25;
     pomoSettings.short = parseInt(document.getElementById('set-short').value)||5;
-    pomoSettings.long = parseInt(document.getElementById('set-long').value)||15;
+    pomoSettings.long  = parseInt(document.getElementById('set-long').value)||15;
     if (!pomoRunning) { pomoTotalSeconds = pomoSettings[pomoMode]*60; pomoSecondsLeft = pomoTotalSeconds; renderPomoDisplay(); }
     savePomoState();
   }
@@ -959,11 +704,10 @@
     document.querySelectorAll('.pomo-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     pomoTotalSeconds = pomoSettings[mode]*60; pomoSecondsLeft = pomoTotalSeconds;
-    updateRingColor(); renderPomoDisplay();
-    savePomoState();
+    updateRingColor(); renderPomoDisplay(); savePomoState();
   }
   function updateRingColor() {
-    const ring = document.getElementById('pomo-ring');
+    const ring  = document.getElementById('pomo-ring');
     const badge = document.getElementById('widget-pomo-badge');
     if (pomoMode === 'work') {
       ring.style.stroke = 'var(--accent)';
@@ -974,8 +718,7 @@
     }
   }
   function renderPomoDisplay() {
-    const m = Math.floor(pomoSecondsLeft/60), s = pomoSecondsLeft%60;
-    const str = `${pad(m)}:${pad(s)}`;
+    const str = `${pad(Math.floor(pomoSecondsLeft/60))}:${pad(pomoSecondsLeft%60)}`;
     document.getElementById('pomo-display').textContent = str;
     document.getElementById('widget-pomo-time').textContent = str;
     const progress = pomoSecondsLeft / pomoTotalSeconds;
@@ -988,24 +731,14 @@
   }
   function togglePomo() {
     if (pomoRunning) {
-      clearInterval(pomoInterval); pomoRunning = false;
-      document.getElementById('pomo-play-btn').textContent = '▶';
-      document.getElementById('widget-pomo-play-btn').textContent = '▶';
+      clearInterval(pomoInterval); pomoRunning = false; setPomoBtns('▶');
     } else {
-      pomoRunning = true;
-      document.getElementById('pomo-play-btn').textContent = '⏸';
-      document.getElementById('widget-pomo-play-btn').textContent = '⏸';
+      pomoRunning = true; setPomoBtns('⏸');
       pomoInterval = setInterval(() => {
         pomoSecondsLeft--;
         renderPomoDisplay();
-        // Save state every 10 seconds
         if (pomoSecondsLeft % 10 === 0) savePomoState();
-        if (pomoSecondsLeft <= 0) {
-          clearInterval(pomoInterval); pomoRunning = false;
-          document.getElementById('pomo-play-btn').textContent = '▶';
-          document.getElementById('widget-pomo-play-btn').textContent = '▶';
-          onPomoComplete();
-        }
+        if (pomoSecondsLeft <= 0) { clearInterval(pomoInterval); pomoRunning=false; setPomoBtns('▶'); onPomoComplete(); }
       }, 1000);
     }
     savePomoState();
@@ -1024,28 +757,136 @@
     pomoMode = mode;
     const tabs = document.querySelectorAll('.pomo-tab');
     tabs.forEach(t => t.classList.remove('active'));
-    const idx = { work:0, short:1, long:2 };
-    tabs[idx[mode]].classList.add('active');
+    tabs[{work:0,short:1,long:2}[mode]].classList.add('active');
     pomoTotalSeconds = pomoSettings[mode]*60; pomoSecondsLeft = pomoTotalSeconds;
-    updateRingColor(); renderPomoDisplay();
-    savePomoState();
+    updateRingColor(); renderPomoDisplay(); savePomoState();
   }
   function resetPomo() {
-    clearInterval(pomoInterval); pomoRunning = false;
-    document.getElementById('pomo-play-btn').textContent = '▶';
-    document.getElementById('widget-pomo-play-btn').textContent = '▶';
+    clearInterval(pomoInterval); pomoRunning = false; setPomoBtns('▶');
     pomoTotalSeconds = pomoSettings[pomoMode]*60; pomoSecondsLeft = pomoTotalSeconds;
-    renderPomoDisplay();
-    savePomoState();
+    renderPomoDisplay(); savePomoState();
   }
-  function skipPomo() { clearInterval(pomoInterval); pomoRunning = false; document.getElementById('pomo-play-btn').textContent = '▶'; document.getElementById('widget-pomo-play-btn').textContent = '▶'; onPomoComplete(); savePomoState(); }
+  function skipPomo() {
+    clearInterval(pomoInterval); pomoRunning = false; setPomoBtns('▶');
+    onPomoComplete(); savePomoState();
+  }
 
-  /* ── GLOBAL TICK ── */
+  /* ══ MUSIC PLAYER STATE (lives here so module & plain scripts share it) ══ */
+  window._music = {
+    cache: [],               // filled by Firestore listener
+    currentId: null,
+    isShuffling: false,
+    repeatMode: 'off',       // 'off' | 'one' | 'all'
+    shuffleIndices: [],
+    listeners: {}            // Firestore unsub fns keyed by song id
+  };
+
+  /* ── progress bar wiring (set up once DOM is ready) ── */
+  document.addEventListener('DOMContentLoaded', () => {
+    const audio = document.getElementById('audio-player');
+    audio.volume = 0.7;
+
+    audio.addEventListener('timeupdate', () => {
+      const fill = document.getElementById('music-progress-fill');
+      const cur  = document.getElementById('music-current-time');
+      const tot  = document.getElementById('music-total-time');
+      if (fill) fill.style.width = (audio.duration ? (audio.currentTime/audio.duration)*100 : 0) + '%';
+      if (cur)  cur.textContent  = formatTime(audio.currentTime);
+      if (tot)  tot.textContent  = formatTime(audio.duration);
+    });
+
+    document.getElementById('music-progress-bar').addEventListener('click', function(e) {
+      const audio = document.getElementById('audio-player');
+      if (!audio.duration) return;
+      const rect = this.getBoundingClientRect();
+      audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+    });
+
+    audio.addEventListener('ended', () => {
+      const M = window._music;
+      if (M.repeatMode === 'one') { audio.currentTime = 0; audio.play(); return; }
+      if (M.isShuffling && M.shuffleIndices.length) {
+        const ci = M.shuffleIndices.indexOf(M.cache.findIndex(s => s.id === M.currentId));
+        const ni = (ci + 1) % M.shuffleIndices.length;
+        const ns = M.cache[M.shuffleIndices[ni]];
+        if (ns) window.playMusic(ns.id, ns.name);
+      } else {
+        window.nextMusic();
+      }
+    });
+
+    renderPomoDisplay();
+    updateRingColor();
+  });
+
+  /* ── music control functions exposed globally ── */
+  window.togglePlayMusic = function() {
+    const audio = document.getElementById('audio-player');
+    const M = window._music;
+    if (audio.paused) {
+      if (!M.currentId && M.cache.length) { window.playMusic(M.cache[0].id, M.cache[0].name); return; }
+      audio.play().then(() => {
+        document.getElementById('play-btn').textContent = '⏸';
+        if (window.renderWidgets) window.renderWidgets();
+      }).catch(()=>{});
+    } else {
+      audio.pause();
+      document.getElementById('play-btn').textContent = '▶';
+      if (window.renderWidgets) window.renderWidgets();
+    }
+  };
+  window.nextMusic = function() {
+    const M = window._music;
+    if (!M.cache.length) return;
+    if (!M.currentId) { window.playMusic(M.cache[0].id, M.cache[0].name); return; }
+    const ci = M.cache.findIndex(s => s.id === M.currentId);
+    const ni = (ci + 1) % M.cache.length;
+    window.playMusic(M.cache[ni].id, M.cache[ni].name);
+  };
+  window.previousMusic = function() {
+    const M = window._music;
+    if (!M.cache.length) return;
+    if (!M.currentId) { window.playMusic(M.cache[0].id, M.cache[0].name); return; }
+    const ci = M.cache.findIndex(s => s.id === M.currentId);
+    const pi = (ci - 1 + M.cache.length) % M.cache.length;
+    window.playMusic(M.cache[pi].id, M.cache[pi].name);
+  };
+  window.toggleShuffle = function() {
+    const M = window._music;
+    M.isShuffling = !M.isShuffling;
+    document.getElementById('shuffle-btn').classList.toggle('active', M.isShuffling);
+    if (M.isShuffling) {
+      M.shuffleIndices = Array.from({length:M.cache.length},(_,i)=>i).sort(()=>Math.random()-0.5);
+      showNotif('🔀 Shuffle ON');
+    } else { showNotif('🔀 Shuffle OFF'); }
+  };
+  window.cycleRepeat = function() {
+    const M = window._music;
+    const modes = ['off','all','one'];
+    M.repeatMode = modes[(modes.indexOf(M.repeatMode)+1)%modes.length];
+    document.getElementById('repeat-btn').classList.toggle('active', M.repeatMode !== 'off');
+    showNotif(M.repeatMode==='off'?'🔁 Repeat OFF':M.repeatMode==='all'?'🔁 Repeat ALL':'🔁 Repeat ONE');
+  };
+  window.setVolume = function(v) {
+    document.getElementById('audio-player').volume = v/100;
+  };
+  window.stopMusic = function() {
+    const M = window._music;
+    if (M.currentId && M.listeners[M.currentId]) { M.listeners[M.currentId](); delete M.listeners[M.currentId]; }
+    const audio = document.getElementById('audio-player');
+    audio.pause(); audio.src = '';
+    M.currentId = null;
+    document.getElementById('play-btn').textContent = '▶';
+    document.getElementById('music-now-title').textContent = 'No song playing';
+    document.getElementById('music-now-artist').textContent = 'Select a song to play';
+    if (window.renderMusicList) window.renderMusicList();
+    if (window.renderWidgets)   window.renderWidgets();
+  };
+
+  /* ── global 1-second tick ── */
   setInterval(() => {
-    const cache = window._getCache ? window._getCache() : { examsCache:[] };
-    const exams = cache.examsCache || [];
+    const exams = (window._getCache ? window._getCache().examsCache : null) || [];
 
-    // Tick exam seconds on exam page
     exams.forEach(e => {
       const cd = getCountdown(e.dt);
       if (!cd) return;
@@ -1053,32 +894,454 @@
       if (el) el.textContent = pad(cd.s);
     });
 
-    // Widget exam tick
     const upcoming = exams.filter(e => getCountdown(e.dt));
     if (upcoming.length) {
       const cd = getCountdown(upcoming[0].dt);
-      if (cd) {
-        ['d','h','m','s'].forEach((u,i) => {
-          const el = document.getElementById('w-ex-'+u);
-          if (el) el.textContent = pad([cd.d,cd.h,cd.m,cd.s][i]);
-        });
-      }
+      if (cd) ['d','h','m','s'].forEach((u,i)=>{
+        const el = document.getElementById('w-ex-'+u);
+        if (el) el.textContent = pad([cd.d,cd.h,cd.m,cd.s][i]);
+      });
     }
 
-    // Full re-render every minute
     if (new Date().getSeconds() === 0) {
-      if (window.renderExams) renderExams();
-      if (window.renderWidgets) renderWidgets();
+      if (window.renderExams)   window.renderExams();
+      if (window.renderWidgets) window.renderWidgets();
     }
   }, 1000);
+</script>
 
-  renderPomoDisplay();
-  updateRingColor();
+<!-- ══════════════════════════════════════════════════════
+     FIREBASE MODULE — all Firestore / Auth logic here
+     ══════════════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, collection, doc, addDoc, deleteDoc, updateDoc,
+    onSnapshot, getDocs, query, orderBy, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBs7oaWeJaGSABLIZTHw_e3FKqjXZEfWl0",
+    authDomain: "excelarate-42dfe.firebaseapp.com",
+    projectId: "excelarate-42dfe",
+    storageBucket: "excelarate-42dfe.firebasestorage.app",
+    messagingSenderId: "912173507507",
+    appId: "1:912173507507:web:62a80ec070a40678c1e1c6"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  let currentUser = null;
+  let todosCache  = [];
+  let examsCache  = [];
+  let pdfCache    = [];
+  let unsubTodos  = null, unsubExams = null, unsubPdf = null, unsubMusic = null;
+
+  // Expose cache so the global tick can access it
+  window._getCache = () => ({ todosCache, examsCache, pdfCache, musicCache: window._music.cache });
+
+  /* ── AUTH GUARD ── */
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
+    document.getElementById('auth-guard').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main-content').style.display = 'block';
+    const av = document.getElementById('user-avatar');
+    av.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
+    av.title = user.displayName || user.email;
+    subscribeData();
+    loadPomoState();   // defined in plain script
+  });
+
+  window.doSignOut = async function() {
+    [unsubTodos, unsubExams, unsubPdf, unsubMusic].forEach(u => u && u());
+    Object.values(window._music.listeners).forEach(u => u && u());
+    window._music.listeners = {};
+    await signOut(auth);
+    window.location.href = 'index.html';
+  };
+
+  /* ── SUBSCRIPTIONS ── */
+  function subscribeData() {
+    const uid = currentUser.uid;
+
+    unsubTodos = onSnapshot(
+      query(collection(db,`users/${uid}/todos`), orderBy('createdAt','desc')),
+      snap => { todosCache = snap.docs.map(d=>({id:d.id,...d.data()})); renderTodos(); renderWidgets(); }
+    );
+    unsubExams = onSnapshot(
+      query(collection(db,`users/${uid}/exams`), orderBy('dt','asc')),
+      snap => { examsCache = snap.docs.map(d=>({id:d.id,...d.data()})); renderExams(); renderWidgets(); }
+    );
+    unsubPdf = onSnapshot(
+      query(collection(db,`users/${uid}/pdfs`), orderBy('uploadedAt','desc')),
+      snap => { pdfCache = snap.docs.map(d=>({id:d.id,...d.data()})); renderPdfs(); }
+    );
+    unsubMusic = onSnapshot(
+      query(collection(db,`users/${uid}/songs`), orderBy('uploadedAt','desc')),
+      snap => {
+        window._music.cache = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderMusicList();
+        renderWidgets();
+      }
+    );
+  }
+
+  /* ── TODOS ── */
+  window.addTodo = async function() {
+    if (!currentUser) return;
+    const inp  = document.getElementById('todo-input');
+    const prio = document.getElementById('todo-prio').value;
+    const text = inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    try {
+      await addDoc(collection(db,`users/${currentUser.uid}/todos`), { text, prio, done:false, createdAt:serverTimestamp() });
+      showNotif('Task added!');
+    } catch(e) { showNotif('Error: '+e.message); }
+  };
+  window.toggleTodo = async function(id, currentDone) {
+    if (!currentUser) return;
+    await updateDoc(doc(db,`users/${currentUser.uid}/todos`,id), { done:!currentDone });
+  };
+  window.deleteTodo = async function(id) {
+    if (!currentUser) return;
+    await deleteDoc(doc(db,`users/${currentUser.uid}/todos`,id));
+    showNotif('Task removed');
+  };
+
+  /* ── EXAMS ── */
+  window.addExam = async function() {
+    if (!currentUser) return;
+    const name = document.getElementById('exam-name').value.trim();
+    const dt   = document.getElementById('exam-dt').value;
+    const icon = document.getElementById('exam-icon-select').value;
+    if (!name || !dt) { showNotif('Fill in name and date!'); return; }
+    document.getElementById('exam-name').value = '';
+    document.getElementById('exam-dt').value   = '';
+    try {
+      await addDoc(collection(db,`users/${currentUser.uid}/exams`), { name, dt, icon, createdAt:serverTimestamp() });
+      showNotif('Exam added!');
+    } catch(e) { showNotif('Error: '+e.message); }
+  };
+  window.deleteExam = async function(id) {
+    if (!currentUser) return;
+    await deleteDoc(doc(db,`users/${currentUser.uid}/exams`,id));
+    showNotif('Exam removed');
+  };
+
+  /* ── PDFS ── */
+  window.uploadPdf = async function() {
+    if (!currentUser) { showNotif('Please sign in first!'); return; }
+    const file = document.getElementById('pdf-file').files[0];
+    if (!file) { showNotif('Select a PDF file first!'); return; }
+    if (!file.name.toLowerCase().endsWith('.pdf')) { showNotif('Only PDF files are allowed!'); return; }
+    if (file.size > 5*1024*1024) { showNotif('File too large (max 5MB)!'); return; }
+    const reader = new FileReader();
+    reader.onload = async e => {
+      try {
+        await addDoc(collection(db,`users/${currentUser.uid}/pdfs`), {
+          name:file.name, data:e.target.result.split(',')[1], size:file.size, uploadedAt:serverTimestamp()
+        });
+        document.getElementById('pdf-file').value = '';
+        showNotif('PDF uploaded!');
+      } catch(err) { showNotif('Error: '+err.message); }
+    };
+    reader.readAsDataURL(file);
+  };
+  window.deletePdf = async function(id) {
+    if (!currentUser) return;
+    await deleteDoc(doc(db,`users/${currentUser.uid}/pdfs`,id));
+    showNotif('PDF removed');
+  };
+  window.viewPdf = function(base64Data, fileName) {
+    const bytes = Uint8Array.from(atob(base64Data), c=>c.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+    document.getElementById('pdf-modal-title').textContent = fileName||'PDF Viewer';
+    document.getElementById('pdf-modal-iframe').src = url;
+    document.getElementById('pdf-modal').classList.add('show');
+  };
+  window.closePdfModal = function() {
+    document.getElementById('pdf-modal').classList.remove('show');
+    document.getElementById('pdf-modal-iframe').src='';
+  };
+
+  /* ── MUSIC UPLOAD ── */
+  window.uploadMusic = async function() {
+    if (!currentUser) { showNotif('Please sign in first!'); return; }
+    const file = document.getElementById('music-file').files[0];
+    if (!file) { showNotif('Select an MP3 file first!'); return; }
+    if (!file.name.toLowerCase().endsWith('.mp3')) { showNotif('Only MP3 files are allowed!'); return; }
+    if (file.size > 10*1024*1024) { showNotif('File too large (max 10MB)!'); return; }
+    const songName = document.getElementById('music-name').value.trim() || file.name.replace(/\.mp3$/i,'');
+    showNotif('Reading file…');
+    const reader = new FileReader();
+    reader.onerror = () => showNotif('Error reading file');
+    reader.onload = async e => {
+      try {
+        const base64 = e.target.result.split(',')[1];
+        const chunkSize = 900*1024;
+        const chunks = [];
+        for (let i=0;i<base64.length;i+=chunkSize) chunks.push(base64.slice(i,i+chunkSize));
+        showNotif(`Uploading 0/${chunks.length} chunks…`);
+        const songRef = await addDoc(collection(db,`users/${currentUser.uid}/songs`), {
+          name:songName, size:file.size, chunkCount:chunks.length, uploadedAt:serverTimestamp(), status:'uploading'
+        });
+        for (let i=0;i<chunks.length;i++) {
+          await addDoc(collection(db,`users/${currentUser.uid}/songs/${songRef.id}/chunks`), { index:i, data:chunks[i], uploadedAt:serverTimestamp() });
+          showNotif(`Uploading ${i+1}/${chunks.length} chunks…`);
+        }
+        await updateDoc(doc(db,`users/${currentUser.uid}/songs`,songRef.id), { status:'ready' });
+        document.getElementById('music-file').value='';
+        document.getElementById('music-name').value='';
+        showNotif('✓ Song uploaded!');
+      } catch(err) { showNotif('Upload error: '+err.message); }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* ── MUSIC DELETE ── */
+  window.deleteMusic = async function(id) {
+    if (!currentUser) return;
+    if (window._music.currentId === id) window.stopMusic();
+    const chunksSnap = await getDocs(collection(db,`users/${currentUser.uid}/songs/${id}/chunks`));
+    for (const d of chunksSnap.docs) await deleteDoc(d.ref);
+    await deleteDoc(doc(db,`users/${currentUser.uid}/songs`,id));
+    showNotif('Song removed');
+  };
+
+  /* ── PLAY MUSIC ── the only definition, has access to currentUser + db ── */
+  window.playMusic = function(songId, songName) {
+    const M = window._music;
+    if (!M.cache.length) return;
+    const song = M.cache.find(s => s.id === songId);
+    if (!song) { showNotif('Song not found'); return; }
+    if (!song.chunkCount) { showNotif('Invalid song data'); return; }
+
+    // Cleanup previous listener
+    if (M.listeners[M.currentId]) { M.listeners[M.currentId](); delete M.listeners[M.currentId]; }
+    if (M.currentId && M.listeners[M.currentId]) { M.listeners[M.currentId](); delete M.listeners[M.currentId]; }
+    // Also clean listener for this songId if re-clicking
+    if (M.listeners[songId]) { M.listeners[songId](); delete M.listeners[songId]; }
+
+    M.currentId = songId;
+    showNotif('Loading…');
+
+    const timeout = setTimeout(() => showNotif('⚠ Still loading chunks…'), 8000);
+
+    const chunksQ = query(
+      collection(db,`users/${currentUser.uid}/songs/${songId}/chunks`),
+      orderBy('index','asc')
+    );
+
+    M.listeners[songId] = onSnapshot(chunksQ, snap => {
+      if (snap.size < song.chunkCount) return; // still loading
+
+      clearTimeout(timeout);
+      try {
+        const map = {};
+        snap.forEach(d => { const cd=d.data(); map[cd.index]=cd.data; });
+        const chunks = [];
+        for (let i=0;i<song.chunkCount;i++) {
+          if (!map[i]) { showNotif(`Missing chunk ${i}, retrying…`); return; }
+          chunks.push(map[i]);
+        }
+        if (!chunks.length) { showNotif('No audio data'); return; }
+
+        const fullB64 = chunks.join('');
+        const bytes   = Uint8Array.from(atob(fullB64), c=>c.charCodeAt(0));
+        const url     = URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));
+
+        const audio = document.getElementById('audio-player');
+        // Revoke old object URL to free memory
+        if (audio._blobUrl) URL.revokeObjectURL(audio._blobUrl);
+        audio._blobUrl = url;
+        audio.src = url;
+
+        audio.play().then(() => {
+          document.getElementById('music-now-title').textContent = songName;
+          document.getElementById('music-now-artist').textContent =
+            `${M.cache.indexOf(song)+1} of ${M.cache.length}`;
+          document.getElementById('play-btn').textContent = '⏸';
+          renderMusicList();
+          renderWidgets();
+          showNotif('▶ Now playing: '+songName);
+          // Unsubscribe — data won't change
+          if (M.listeners[songId]) { M.listeners[songId](); delete M.listeners[songId]; }
+        }).catch(err => {
+          console.error('Playback error:', err);
+          showNotif('Click play to start (browser autoplay policy)');
+        });
+      } catch(err) {
+        console.error('Reconstruct error:', err);
+        showNotif('Error loading song: '+err.message);
+      }
+    }, err => {
+      clearTimeout(timeout);
+      showNotif('Fetch error: '+(err.message||err.code));
+    });
+  };
+
+  /* ── RENDER FUNCTIONS ── */
+  window.renderTodos = function() {
+    const list = document.getElementById('todo-full-list');
+    document.getElementById('stat-total').textContent = todosCache.length;
+    const done = todosCache.filter(x=>x.done).length;
+    document.getElementById('stat-done').textContent = done;
+    document.getElementById('stat-left').textContent = todosCache.length-done;
+    if (!todosCache.length) { list.innerHTML='<div class="empty-state"><div class="big">📝</div>Start adding tasks above!</div>'; return; }
+    const pOrder={high:0,med:1,low:2};
+    const sorted=[...todosCache].sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return pOrder[a.prio]-pOrder[b.prio];});
+    list.innerHTML = sorted.map(t=>`
+      <div class="todo-item-full ${t.done?'done-item':''}">
+        <button class="check-box ${t.done?'checked':''}" onclick="toggleTodo('${t.id}',${t.done})">${t.done?'✓':''}</button>
+        <span class="todo-item-text">${esc(t.text)}</span>
+        <span class="todo-prio prio-${t.prio}">${t.prio}</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteTodo('${t.id}')">✕</button>
+      </div>`).join('');
+  };
+
+  window.renderExams = function() {
+    const list = document.getElementById('exam-list');
+    if (!examsCache.length) { list.innerHTML='<div class="empty-state"><div class="big">🎓</div>No exams added yet!</div>'; return; }
+    list.innerHTML = examsCache.map(e => {
+      const cd=getCountdown(e.dt), passed=!cd;
+      const dateStr=new Date(e.dt).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+      let urgency='ok'; if(cd){if(cd.d<1)urgency='soon';else if(cd.d<3)urgency='close';}
+      const countHtml = passed
+        ? `<span style="font-size:11px;color:var(--muted);font-style:italic">Completed</span>`
+        : `<div class="exam-countdown-inline">
+            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.d)}</div><div class="exam-unit-lbl">Days</div></div>
+            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.h)}</div><div class="exam-unit-lbl">Hrs</div></div>
+            <div class="exam-unit"><div class="exam-unit-num">${pad(cd.m)}</div><div class="exam-unit-lbl">Min</div></div>
+            <div class="exam-unit"><div class="exam-unit-num" data-exam-s="${e.id}">${pad(cd.s)}</div><div class="exam-unit-lbl">Sec</div></div>
+            <div class="urgency-dot urgency-${urgency}"></div>
+          </div>`;
+      return `<div class="exam-card ${passed?'passed':''}">
+        <div class="exam-icon">${e.icon}</div>
+        <div class="exam-info"><div class="exam-name">${esc(e.name)}</div><div class="exam-date-str">${dateStr}</div></div>
+        ${countHtml}
+        <button class="btn btn-danger btn-sm" onclick="deleteExam('${e.id}')">✕</button>
+      </div>`;
+    }).join('');
+  };
+
+  window.renderPdfs = function() {
+    const list = document.getElementById('pdf-list');
+    if (!pdfCache.length) { list.innerHTML='<div class="empty-state"><div class="big">📄</div>No files uploaded yet!</div>'; return; }
+    list.innerHTML = pdfCache.map(p => {
+      const sizeKB=(p.size/1024).toFixed(1);
+      const uploaded=new Date((p.uploadedAt?.seconds||0)*1000).toLocaleDateString('en-IN');
+      return `<div class="exam-card">
+        <div class="exam-icon">📄</div>
+        <div class="exam-info"><div class="exam-name">${esc(p.name)}</div><div class="exam-date-str">${sizeKB} KB • Uploaded ${uploaded}</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="viewPdf('${p.data}','${esc(p.name)}')">View</button>
+          <button class="btn btn-danger btn-sm" onclick="deletePdf('${p.id}')">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  window.renderMusicList = function() {
+    const list = document.getElementById('music-list');
+    const M    = window._music;
+    if (!M.cache.length) { list.innerHTML='<div class="empty-state"><div class="big">🎵</div>No songs uploaded yet</div>'; return; }
+    list.innerHTML = M.cache.map(m => {
+      const sizeMB=(m.size/(1024*1024)).toFixed(1);
+      const playing=M.currentId===m.id;
+      return `<div class="music-item ${playing?'playing':''}" onclick="playMusic('${m.id}','${esc(m.name)}')">
+        <div class="music-item-icon">🎵</div>
+        <div class="music-item-info">
+          <div class="music-item-name">${esc(m.name)}</div>
+          <div class="music-item-size">${sizeMB} MB · ${m.status||'ready'}</div>
+        </div>
+        <button class="music-item-delete" onclick="event.stopPropagation();deleteMusic('${m.id}')">✕</button>
+      </div>`;
+    }).join('');
+  };
+
+  window.renderWidgets = function() {
+    document.getElementById('home-date').textContent =
+      new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+    // Todo widget
+    const wl = document.getElementById('widget-todo-list');
+    if (!todosCache.length) {
+      wl.innerHTML='<div class="empty-state"><div class="big">✓</div>No tasks yet</div>';
+    } else {
+      const pOrder={high:0,med:1,low:2};
+      const sorted=[...todosCache].sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return pOrder[a.prio]-pOrder[b.prio];}).slice(0,8);
+      wl.innerHTML=sorted.map(t=>`
+        <div class="todo-item-preview">
+          <div class="todo-check-mini ${t.done?'done':''}" onclick="toggleTodo('${t.id}',${t.done})"></div>
+          <span class="todo-text-preview ${t.done?'done':''}">${esc(t.text)}</span>
+          <span class="todo-prio prio-${t.prio}">${t.prio}</span>
+        </div>`).join('');
+    }
+
+    // Exam widget
+    const ec = document.getElementById('widget-exam-content');
+    const upcoming=examsCache.filter(e=>getCountdown(e.dt));
+    if (!upcoming.length) {
+      ec.innerHTML='<div class="empty-state" style="padding:20px"><div class="big">📅</div>No exams scheduled</div>';
+    } else {
+      const next=upcoming[0], cd=getCountdown(next.dt);
+      ec.innerHTML=`<div class="next-exam-name">${next.icon} ${esc(next.name)}</div>
+        <div class="countdown-grid">
+          <div class="count-unit"><div class="count-num" id="w-ex-d">${pad(cd.d)}</div><div class="count-lbl">Days</div></div>
+          <div class="count-unit"><div class="count-num" id="w-ex-h">${pad(cd.h)}</div><div class="count-lbl">Hours</div></div>
+          <div class="count-unit"><div class="count-num" id="w-ex-m">${pad(cd.m)}</div><div class="count-lbl">Mins</div></div>
+          <div class="count-unit"><div class="count-num" id="w-ex-s">${pad(cd.s)}</div><div class="count-lbl">Secs</div></div>
+        </div>`;
+    }
+
+    // Files widget
+    const fl=document.getElementById('widget-files-list');
+    if (!pdfCache.length) {
+      fl.innerHTML='<div class="empty-state"><div class="big">📄</div>No files yet</div>';
+    } else {
+      fl.innerHTML=pdfCache.slice(0,6).map(f=>{
+        const sizeKB=(f.size/1024).toFixed(1);
+        return `<div class="file-item-preview">
+          <div class="file-icon-mini">📄</div>
+          <span class="file-name-preview">${esc(f.name)}</span>
+          <span class="file-size-badge">${sizeKB} KB</span>
+        </div>`;
+      }).join('');
+    }
+
+    // Music widget
+    const mc=document.getElementById('widget-music-content');
+    const M=window._music;
+    if (!M.cache.length) {
+      mc.innerHTML='<div class="empty-state"><div class="big">🎵</div>No songs yet</div>';
+    } else {
+      const audio=document.getElementById('audio-player');
+      const isPlaying=M.currentId && !audio.paused;
+      const displaySong=M.currentId ? M.cache.find(s=>s.id===M.currentId) : M.cache[0];
+      mc.innerHTML=`<div class="music-widget">
+        <div class="music-widget-img">🎵</div>
+        <div class="music-widget-info">
+          <div class="music-widget-title">${esc(displaySong.name)}</div>
+          <div class="music-widget-artist">${M.cache.length} song${M.cache.length!==1?'s':''} in playlist</div>
+          <div class="music-widget-controls">
+            <button class="music-widget-btn" onclick="previousMusic()">⏮</button>
+            <button class="music-widget-btn ${isPlaying?'playing':''}" onclick="togglePlayMusic()">${isPlaying?'⏸':'▶'}</button>
+            <button class="music-widget-btn" onclick="nextMusic()">⏭</button>
+          </div>
+        </div>
+      </div>`;
+    }
+  };
 </script>
 
 <footer style="padding:16px 36px; border-top:1px solid var(--border); color:var(--muted); font-size:11px; text-align:right;">
-  version 1.2.1
+  version 1.3.0
 </footer>
-
 </body>
 </html>
