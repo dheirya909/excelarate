@@ -640,46 +640,67 @@
     if (id === 'home' && window.renderWidgets) window.renderWidgets();
   }
 
-  /* ══ POMODORO ══ */
-  let pomoRunning = false, pomoInterval = null, pomoMode = 'work';
-  let pomoSettings = { work:25, short:5, long:15 };
-  let pomoSecondsLeft = 25*60, pomoTotalSeconds = 25*60;
-  let pomoSessions = 0, pomoFocusMinutes = 0, pomoSessionNum = 1;
-  let pomoLastSaved = Date.now();
+  /* ══ POMODORO ══
+     Source of truth: pomoEndTime (epoch ms when session ends).
+     pomoSecondsLeft is derived each tick from (pomoEndTime - Date.now()),
+     so tab-throttling / backgrounding can never cause drift.
+  ══ */
+  let pomoRunning      = false;
+  let pomoRafId        = null;   // requestAnimationFrame handle
+  let pomoMode         = 'work';
+  let pomoSettings     = { work:25, short:5, long:15 };
+  let pomoTotalSeconds = 25*60;
+  let pomoSecondsLeft  = 25*60;
+  let pomoEndTime      = 0;      // Date.now() + remaining ms when started/resumed
+  let pomoSessions     = 0;
+  let pomoFocusMinutes = 0;
+  let pomoSessionNum   = 1;
 
+  /* Persist everything needed to resume after a page reload */
   function savePomoState() {
     localStorage.setItem('pomoState', JSON.stringify({
-      pomoRunning, pomoMode, pomoSettings, pomoSecondsLeft, pomoTotalSeconds,
-      pomoSessions, pomoFocusMinutes, pomoSessionNum, pomoLastSaved: Date.now()
+      pomoRunning, pomoMode, pomoSettings,
+      pomoTotalSeconds, pomoSecondsLeft, pomoEndTime,
+      pomoSessions, pomoFocusMinutes, pomoSessionNum
     }));
   }
+
   function loadPomoState() {
     const saved = localStorage.getItem('pomoState');
-    if (!saved) return;
-    const st = JSON.parse(saved);
-    pomoRunning = st.pomoRunning || false;
-    pomoMode = st.pomoMode || 'work';
-    pomoSettings = st.pomoSettings || { work:25, short:5, long:15 };
-    pomoSecondsLeft = st.pomoSecondsLeft || 25*60;
-    pomoTotalSeconds = st.pomoTotalSeconds || 25*60;
-    pomoSessions = st.pomoSessions || 0;
-    pomoFocusMinutes = st.pomoFocusMinutes || 0;
-    pomoSessionNum = st.pomoSessionNum || 1;
-    pomoLastSaved = st.pomoLastSaved || Date.now();
-    if (pomoRunning) {
-      const elapsed = Math.floor((Date.now() - pomoLastSaved) / 1000);
-      pomoSecondsLeft = Math.max(0, pomoSecondsLeft - elapsed);
-      if (pomoSecondsLeft <= 0) { pomoRunning = false; onPomoComplete(); }
-      else {
-        pomoInterval = setInterval(() => { pomoSecondsLeft--; renderPomoDisplay(); if(pomoSecondsLeft%10===0) savePomoState(); if(pomoSecondsLeft<=0){clearInterval(pomoInterval);pomoRunning=false;setPomoBtns('▶');onPomoComplete();} }, 1000);
+    if (saved) {
+      const st = JSON.parse(saved);
+      pomoMode         = st.pomoMode         || 'work';
+      pomoSettings     = st.pomoSettings     || { work:25, short:5, long:15 };
+      pomoTotalSeconds = st.pomoTotalSeconds || 25*60;
+      pomoSessions     = st.pomoSessions     || 0;
+      pomoFocusMinutes = st.pomoFocusMinutes || 0;
+      pomoSessionNum   = st.pomoSessionNum   || 1;
+      pomoEndTime      = st.pomoEndTime      || 0;
+
+      if (st.pomoRunning && pomoEndTime > Date.now()) {
+        // Timer was running while away — resume from wall clock
+        pomoSecondsLeft = Math.ceil((pomoEndTime - Date.now()) / 1000);
+        pomoRunning = true;
         setPomoBtns('⏸');
+        startPomoRAF();
+      } else if (st.pomoRunning && pomoEndTime <= Date.now()) {
+        // Timer finished while tab was hidden — handle completion now
+        pomoSecondsLeft = 0;
+        pomoRunning = false;
+        setPomoBtns('▶');
+        renderPomoDisplay();
+        onPomoComplete();
+        return; // onPomoComplete calls savePomoState + renderPomoDisplay
+      } else {
+        pomoSecondsLeft = st.pomoSecondsLeft || pomoTotalSeconds;
       }
     }
-    document.getElementById('set-work').value = pomoSettings.work;
+
+    document.getElementById('set-work').value  = pomoSettings.work;
     document.getElementById('set-short').value = pomoSettings.short;
-    document.getElementById('set-long').value = pomoSettings.long;
-    document.getElementById('stat-sessions').textContent = pomoSessions;
-    document.getElementById('stat-focus-time').textContent = pomoFocusMinutes+'m';
+    document.getElementById('set-long').value  = pomoSettings.long;
+    document.getElementById('stat-sessions').textContent    = pomoSessions;
+    document.getElementById('stat-focus-time').textContent  = pomoFocusMinutes + 'm';
     document.getElementById('pomo-session-count').textContent = `Session ${pomoSessionNum}`;
     const tabs = document.querySelectorAll('.pomo-tab');
     tabs.forEach(t => t.classList.remove('active'));
@@ -687,15 +708,50 @@
     updateRingColor();
     renderPomoDisplay();
   }
+
+  /* rAF loop — fires every animation frame, but we only update the
+     display when the displayed second actually changes.  Because we
+     read Date.now() directly, any tab sleep / throttle is irrelevant. */
+  let _pomoLastDisplayedSecond = -1;
+  function startPomoRAF() {
+    if (pomoRafId) cancelAnimationFrame(pomoRafId);
+    function tick() {
+      if (!pomoRunning) return;
+      const remaining = Math.ceil((pomoEndTime - Date.now()) / 1000);
+      if (remaining !== _pomoLastDisplayedSecond) {
+        _pomoLastDisplayedSecond = remaining;
+        if (remaining <= 0) {
+          pomoSecondsLeft = 0;
+          pomoRunning = false;
+          setPomoBtns('▶');
+          renderPomoDisplay();
+          onPomoComplete();
+          savePomoState();
+          return; // stop loop
+        }
+        pomoSecondsLeft = remaining;
+        renderPomoDisplay();
+        // Persist every ~10 s so a hard-reload can resume
+        if (remaining % 10 === 0) savePomoState();
+      }
+      pomoRafId = requestAnimationFrame(tick);
+    }
+    pomoRafId = requestAnimationFrame(tick);
+  }
+
   function setPomoBtns(icon) {
     document.getElementById('pomo-play-btn').textContent = icon;
     document.getElementById('widget-pomo-play-btn').textContent = icon;
   }
   function updatePomoSettings() {
-    pomoSettings.work  = parseInt(document.getElementById('set-work').value)||25;
-    pomoSettings.short = parseInt(document.getElementById('set-short').value)||5;
-    pomoSettings.long  = parseInt(document.getElementById('set-long').value)||15;
-    if (!pomoRunning) { pomoTotalSeconds = pomoSettings[pomoMode]*60; pomoSecondsLeft = pomoTotalSeconds; renderPomoDisplay(); }
+    pomoSettings.work  = parseInt(document.getElementById('set-work').value)  || 25;
+    pomoSettings.short = parseInt(document.getElementById('set-short').value) || 5;
+    pomoSettings.long  = parseInt(document.getElementById('set-long').value)  || 15;
+    if (!pomoRunning) {
+      pomoTotalSeconds = pomoSettings[pomoMode] * 60;
+      pomoSecondsLeft  = pomoTotalSeconds;
+      renderPomoDisplay();
+    }
     savePomoState();
   }
   function setPomoMode(mode, btn) {
@@ -703,7 +759,8 @@
     pomoMode = mode;
     document.querySelectorAll('.pomo-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    pomoTotalSeconds = pomoSettings[mode]*60; pomoSecondsLeft = pomoTotalSeconds;
+    pomoTotalSeconds = pomoSettings[mode] * 60;
+    pomoSecondsLeft  = pomoTotalSeconds;
     updateRingColor(); renderPomoDisplay(); savePomoState();
   }
   function updateRingColor() {
@@ -718,39 +775,46 @@
     }
   }
   function renderPomoDisplay() {
-    const str = `${pad(Math.floor(pomoSecondsLeft/60))}:${pad(pomoSecondsLeft%60)}`;
+    const s   = Math.max(0, pomoSecondsLeft);
+    const str = `${pad(Math.floor(s/60))}:${pad(s%60)}`;
     document.getElementById('pomo-display').textContent = str;
     document.getElementById('widget-pomo-time').textContent = str;
-    const progress = pomoSecondsLeft / pomoTotalSeconds;
-    document.getElementById('pomo-ring').style.strokeDashoffset = 753.98*(1-progress);
+    const progress = s / pomoTotalSeconds;
+    document.getElementById('pomo-ring').style.strokeDashoffset = 753.98 * (1 - progress);
     const bar = document.getElementById('widget-pomo-bar');
-    if (bar) bar.style.width = (progress*100)+'%';
+    if (bar) bar.style.width = (progress * 100) + '%';
     const labels = { work:'Work Session', short:'Short Break', long:'Long Break' };
     document.getElementById('pomo-label').textContent = labels[pomoMode];
     document.getElementById('pomo-session-count').textContent = `Session ${pomoSessionNum}`;
   }
   function togglePomo() {
     if (pomoRunning) {
-      clearInterval(pomoInterval); pomoRunning = false; setPomoBtns('▶');
+      // Pause — save remaining seconds, stop loop
+      if (pomoRafId) { cancelAnimationFrame(pomoRafId); pomoRafId = null; }
+      pomoSecondsLeft = Math.max(0, Math.ceil((pomoEndTime - Date.now()) / 1000));
+      pomoRunning = false;
+      setPomoBtns('▶');
     } else {
-      pomoRunning = true; setPomoBtns('⏸');
-      pomoInterval = setInterval(() => {
-        pomoSecondsLeft--;
-        renderPomoDisplay();
-        if (pomoSecondsLeft % 10 === 0) savePomoState();
-        if (pomoSecondsLeft <= 0) { clearInterval(pomoInterval); pomoRunning=false; setPomoBtns('▶'); onPomoComplete(); }
-      }, 1000);
+      // Start / resume — anchor end time to wall clock
+      pomoEndTime = Date.now() + pomoSecondsLeft * 1000;
+      pomoRunning = true;
+      setPomoBtns('⏸');
+      _pomoLastDisplayedSecond = -1;
+      startPomoRAF();
     }
     savePomoState();
   }
   function onPomoComplete() {
     if (pomoMode === 'work') {
       pomoSessions++; pomoFocusMinutes += pomoSettings.work; pomoSessionNum++;
-      document.getElementById('stat-sessions').textContent = pomoSessions;
-      document.getElementById('stat-focus-time').textContent = pomoFocusMinutes+'m';
+      document.getElementById('stat-sessions').textContent   = pomoSessions;
+      document.getElementById('stat-focus-time').textContent = pomoFocusMinutes + 'm';
       showNotif('🍅 Session complete! Take a break.');
       autoSwitchPomo(pomoSessions % 4 === 0 ? 'long' : 'short');
-    } else { showNotif('⚡ Break over! Back to work.'); autoSwitchPomo('work'); }
+    } else {
+      showNotif('⚡ Break over! Back to work.');
+      autoSwitchPomo('work');
+    }
     savePomoState();
   }
   function autoSwitchPomo(mode) {
@@ -758,18 +822,34 @@
     const tabs = document.querySelectorAll('.pomo-tab');
     tabs.forEach(t => t.classList.remove('active'));
     tabs[{work:0,short:1,long:2}[mode]].classList.add('active');
-    pomoTotalSeconds = pomoSettings[mode]*60; pomoSecondsLeft = pomoTotalSeconds;
+    pomoTotalSeconds = pomoSettings[mode] * 60;
+    pomoSecondsLeft  = pomoTotalSeconds;
     updateRingColor(); renderPomoDisplay(); savePomoState();
   }
   function resetPomo() {
-    clearInterval(pomoInterval); pomoRunning = false; setPomoBtns('▶');
-    pomoTotalSeconds = pomoSettings[pomoMode]*60; pomoSecondsLeft = pomoTotalSeconds;
+    if (pomoRafId) { cancelAnimationFrame(pomoRafId); pomoRafId = null; }
+    pomoRunning = false; setPomoBtns('▶');
+    pomoTotalSeconds = pomoSettings[pomoMode] * 60;
+    pomoSecondsLeft  = pomoTotalSeconds;
     renderPomoDisplay(); savePomoState();
   }
   function skipPomo() {
-    clearInterval(pomoInterval); pomoRunning = false; setPomoBtns('▶');
+    if (pomoRafId) { cancelAnimationFrame(pomoRafId); pomoRafId = null; }
+    pomoRunning = false; setPomoBtns('▶');
     onPomoComplete(); savePomoState();
   }
+
+  /* Re-sync display whenever the tab becomes visible again */
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && pomoRunning) {
+      pomoSecondsLeft = Math.max(0, Math.ceil((pomoEndTime - Date.now()) / 1000));
+      renderPomoDisplay();
+      if (pomoSecondsLeft <= 0) {
+        pomoRunning = false; setPomoBtns('▶');
+        onPomoComplete(); savePomoState();
+      }
+    }
+  });
 
   /* ══ MUSIC PLAYER STATE (lives here so module & plain scripts share it) ══ */
   window._music = {
@@ -1341,7 +1421,7 @@
 </script>
 
 <footer style="padding:16px 36px; border-top:1px solid var(--border); color:var(--muted); font-size:11px; text-align:right;">
-  version 1.3.0
+  version 1.2.2
 </footer>
 </body>
 </html>
