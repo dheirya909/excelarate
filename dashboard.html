@@ -224,6 +224,17 @@
   .sync-dot.syncing { background:var(--accent2); animation:spin 0.8s linear infinite; width:10px; height:10px; border:2px solid var(--accent2); border-top-color:transparent; border-radius:50%; background:none; }
   @keyframes spin { to{transform:rotate(360deg)} }
 
+  /* PDF Modal */
+  .pdf-modal { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:1000; }
+  .pdf-modal.show { display:flex; }
+  .pdf-modal-content { background:var(--surface); border:1px solid var(--border); border-radius:16px; width:90%; max-width:900px; height:90vh; display:flex; flex-direction:column; animation:fadeIn 0.3s ease; }
+  .pdf-modal-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--border); }
+  .pdf-modal-title { font-family:'Syne',sans-serif; font-weight:700; font-size:18px; color:var(--text); }
+  .pdf-modal-close { width:32px; height:32px; border:none; background:none; border-radius:8px; cursor:pointer; color:var(--muted); font-size:20px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .pdf-modal-close:hover { background:var(--surface2); color:var(--text); }
+  .pdf-modal-body { flex:1; overflow:hidden; }
+  .pdf-modal-body iframe { width:100%; height:100%; border:none; }
+
   ::-webkit-scrollbar { width:6px; }
   ::-webkit-scrollbar-track { background:var(--surface); }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
@@ -260,6 +271,9 @@
   <button class="nav-btn" onclick="showPage('exam')" id="nav-exam">
     <span>📅</span><span class="label">Exams</span>
   </button>
+  <button class="nav-btn" onclick="showPage('pdf')" id="nav-pdf">
+    <span>📄</span><span class="label">Files</span>
+  </button>
   <div class="sidebar-bottom">
     <div class="user-avatar" id="user-avatar" title="Signed in">?</div>
     <button class="sign-out-btn" onclick="doSignOut()" title="Sign out">⏏</button>
@@ -287,6 +301,9 @@
           <div class="pomo-mini-progress-fill" id="widget-pomo-bar" style="width:100%"></div>
         </div>
         <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="pomo-btn-secondary" style="width:32px;height:32px" onclick="resetPomo()" title="Reset">↺</button>
+          <button class="pomo-btn-main" id="widget-pomo-play-btn" style="width:40px;height:40px" onclick="togglePomo()">▶</button>
+          <button class="pomo-btn-secondary" style="width:32px;height:32px" onclick="skipPomo()" title="Skip">⏭</button>
           <button class="btn btn-accent" style="flex:1" onclick="showPage('pomo')">Open Timer</button>
         </div>
       </div>
@@ -417,9 +434,38 @@
     </div>
   </div>
 
+  <!-- ══ PDF ══ -->
+  <div class="page" id="page-pdf">
+    <div class="page-header">
+      <h1 class="page-title">Files</h1>
+      <span class="page-sub">Upload and view PDFs</span>
+    </div>
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-label">Upload PDF</div>
+      <input type="file" id="pdf-file" accept=".pdf" style="margin-bottom:12px">
+      <button class="btn btn-accent" onclick="uploadPdf()">Upload</button>
+    </div>
+    <div id="pdf-list" class="exam-list">
+      <div class="empty-state"><div class="big">📄</div>No files uploaded yet!</div>
+    </div>
+  </div>
+
 </main>
 
 <div class="notif" id="notif"></div>
+
+<!-- PDF MODAL -->
+<div class="pdf-modal" id="pdf-modal">
+  <div class="pdf-modal-content">
+    <div class="pdf-modal-header">
+      <div class="pdf-modal-title" id="pdf-modal-title">PDF Viewer</div>
+      <button class="pdf-modal-close" onclick="closePdfModal()" title="Close">✕</button>
+    </div>
+    <div class="pdf-modal-body">
+      <iframe id="pdf-modal-iframe"></iframe>
+    </div>
+  </div>
+</div>
 
 <!-- FIREBASE -->
 <script type="module">
@@ -429,6 +475,7 @@
     getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot,
     query, orderBy, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   // ════════════════════════════════════════
   // 🔥 PASTE YOUR FIREBASE CONFIG HERE
@@ -448,12 +495,15 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const storage = getStorage(app);
 
   let currentUser = null;
   let todosCache = [];
   let examsCache = [];
+  let pdfCache = [];
   let unsubTodos = null;
   let unsubExams = null;
+  let unsubPdf = null;
 
   // ── AUTH GUARD ──
   onAuthStateChanged(auth, (user) => {
@@ -474,11 +524,13 @@
     subscribeData();
     renderWidgets();
     window._dbReady = true;
+    loadPomoState();
   });
 
   window.doSignOut = async function() {
     if (unsubTodos) unsubTodos();
     if (unsubExams) unsubExams();
+    if (unsubPdf) unsubPdf();
     await signOut(auth);
     window.location.href = 'index.html';
   };
@@ -502,6 +554,14 @@
       examsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderExams();
       renderWidgets();
+      setSyncing(false);
+    });
+
+    const pdfQ = query(collection(db, `users/${uid}/pdfs`), orderBy('uploadedAt', 'desc'));
+    unsubPdf = onSnapshot(pdfQ, (snap) => {
+      setSyncing(true);
+      pdfCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderPdfs();
       setSyncing(false);
     });
   }
@@ -570,6 +630,60 @@
     } catch(e) { console.error(e); }
   };
 
+  // ── PDFS ──
+  window.uploadPdf = async function() {
+    if (!currentUser) { showNotif('Please sign in first!'); return; }
+    const fileInput = document.getElementById('pdf-file');
+    const file = fileInput.files[0];
+    if (!file) { showNotif('Select a PDF file first!'); return; }
+    if (!file.name.toLowerCase().endsWith('.pdf')) { showNotif('Only PDF files are allowed!'); return; }
+    if (file.size > 5 * 1024 * 1024) { showNotif('File too large (max 5MB)!'); return; }
+    setSyncing(true);
+    try {
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        await addDoc(collection(db, `users/${currentUser.uid}/pdfs`), {
+          name: file.name,
+          data: base64Data,
+          size: file.size,
+          uploadedAt: serverTimestamp()
+        });
+        fileInput.value = '';
+        showNotif('PDF uploaded!');
+        setSyncing(false);
+      };
+      reader.readAsDataURL(file);
+    } catch(e) { showNotif('Error: ' + e.message); console.error(e); setSyncing(false); }
+  };
+
+  window.deletePdf = async function(id) {
+    if (!currentUser) return;
+    try {
+      await deleteDoc(doc(db, `users/${currentUser.uid}/pdfs`, id));
+      showNotif('PDF removed');
+    } catch(e) { console.error(e); }
+  };
+
+  window.viewPdf = function(base64Data, fileName) {
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    document.getElementById('pdf-modal-title').textContent = fileName || 'PDF Viewer';
+    document.getElementById('pdf-modal-iframe').src = url;
+    document.getElementById('pdf-modal').classList.add('show');
+  };
+
+  window.closePdfModal = function() {
+    document.getElementById('pdf-modal').classList.remove('show');
+    document.getElementById('pdf-modal-iframe').src = '';
+  };
+
   // ── RENDER TODOS ──
   window.renderTodos = function() {
     const list = document.getElementById('todo-full-list');
@@ -633,6 +747,31 @@
     }).join('');
   };
 
+  // ── RENDER PDFS ──
+  window.renderPdfs = function() {
+    const list = document.getElementById('pdf-list');
+    if (!pdfCache.length) {
+      list.innerHTML = '<div class="empty-state"><div class="big">📄</div>No files uploaded yet!</div>';
+      return;
+    }
+    list.innerHTML = pdfCache.map(p => {
+      const sizeKB = (p.size / 1024).toFixed(1);
+      const uploaded = new Date(p.uploadedAt?.seconds * 1000).toLocaleDateString('en-IN');
+      return `
+        <div class="exam-card">
+          <div class="exam-icon">📄</div>
+          <div class="exam-info">
+            <div class="exam-name">${esc(p.name)}</div>
+            <div class="exam-date-str">${sizeKB} KB • Uploaded ${uploaded}</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="viewPdf('${p.data}', '${esc(p.name)}')">View</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePdf('${p.id}')">✕</button>
+          </div>
+        </div>`;
+    }).join('');
+  };
+
   // ── RENDER WIDGETS ──
   window.renderWidgets = function() {
     document.getElementById('home-date').textContent =
@@ -650,7 +789,7 @@
       }).slice(0, 8);
       wl.innerHTML = sorted.map(t => `
         <div class="todo-item-preview">
-          <div class="todo-check-mini ${t.done ? 'done' : ''}"></div>
+          <div class="todo-check-mini ${t.done ? 'done' : ''}" onclick="toggleTodo('${t.id}',${t.done})"></div>
           <span class="todo-text-preview ${t.done ? 'done' : ''}">${esc(t.text)}</span>
           <span class="todo-prio prio-${t.prio}">${t.prio}</span>
         </div>`).join('');
@@ -676,7 +815,7 @@
   };
 
   // Expose cache for global tick
-  window._getCache = () => ({ todosCache, examsCache });
+  window._getCache = () => ({ todosCache, examsCache, pdfCache });
 </script>
 
 <script>
@@ -710,12 +849,75 @@
   let pomoSettings = { work:25, short:5, long:15 };
   let pomoSecondsLeft = 25*60, pomoTotalSeconds = 25*60;
   let pomoSessions = 0, pomoFocusMinutes = 0, pomoSessionNum = 1;
+  let pomoLastSaved = Date.now();
+
+  function savePomoState() {
+    const state = {
+      pomoRunning, pomoMode, pomoSettings, pomoSecondsLeft, pomoTotalSeconds,
+      pomoSessions, pomoFocusMinutes, pomoSessionNum, pomoLastSaved: Date.now()
+    };
+    localStorage.setItem('pomoState', JSON.stringify(state));
+  }
+
+  function loadPomoState() {
+    const saved = localStorage.getItem('pomoState');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    pomoRunning = state.pomoRunning || false;
+    pomoMode = state.pomoMode || 'work';
+    pomoSettings = state.pomoSettings || { work:25, short:5, long:15 };
+    pomoSecondsLeft = state.pomoSecondsLeft || 25*60;
+    pomoTotalSeconds = state.pomoTotalSeconds || 25*60;
+    pomoSessions = state.pomoSessions || 0;
+    pomoFocusMinutes = state.pomoFocusMinutes || 0;
+    pomoSessionNum = state.pomoSessionNum || 1;
+    pomoLastSaved = state.pomoLastSaved || Date.now();
+
+    // Adjust time if it was running
+    if (pomoRunning) {
+      const elapsed = Math.floor((Date.now() - pomoLastSaved) / 1000);
+      pomoSecondsLeft = Math.max(0, pomoSecondsLeft - elapsed);
+      if (pomoSecondsLeft <= 0) {
+        pomoRunning = false;
+        onPomoComplete();
+      } else {
+        // Resume the timer
+        pomoInterval = setInterval(() => {
+          pomoSecondsLeft--;
+          renderPomoDisplay();
+          if (pomoSecondsLeft <= 0) {
+            clearInterval(pomoInterval); pomoRunning = false;
+            document.getElementById('pomo-play-btn').textContent = '▶';
+            document.getElementById('widget-pomo-play-btn').textContent = '▶';
+            onPomoComplete();
+          }
+        }, 1000);
+        document.getElementById('pomo-play-btn').textContent = '⏸';
+        document.getElementById('widget-pomo-play-btn').textContent = '⏸';
+      }
+    }
+
+    // Update UI
+    document.getElementById('set-work').value = pomoSettings.work;
+    document.getElementById('set-short').value = pomoSettings.short;
+    document.getElementById('set-long').value = pomoSettings.long;
+    document.getElementById('stat-sessions').textContent = pomoSessions;
+    document.getElementById('stat-focus-time').textContent = pomoFocusMinutes+'m';
+    document.getElementById('pomo-session-count').textContent = `Session ${pomoSessionNum}`;
+    const tabs = document.querySelectorAll('.pomo-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    const idx = { work:0, short:1, long:2 };
+    tabs[idx[pomoMode]].classList.add('active');
+    updateRingColor();
+    renderPomoDisplay();
+  }
 
   function updatePomoSettings() {
     pomoSettings.work = parseInt(document.getElementById('set-work').value)||25;
     pomoSettings.short = parseInt(document.getElementById('set-short').value)||5;
     pomoSettings.long = parseInt(document.getElementById('set-long').value)||15;
     if (!pomoRunning) { pomoTotalSeconds = pomoSettings[pomoMode]*60; pomoSecondsLeft = pomoTotalSeconds; renderPomoDisplay(); }
+    savePomoState();
   }
   function setPomoMode(mode, btn) {
     if (pomoRunning) resetPomo();
@@ -724,6 +926,7 @@
     btn.classList.add('active');
     pomoTotalSeconds = pomoSettings[mode]*60; pomoSecondsLeft = pomoTotalSeconds;
     updateRingColor(); renderPomoDisplay();
+    savePomoState();
   }
   function updateRingColor() {
     const ring = document.getElementById('pomo-ring');
@@ -753,19 +956,25 @@
     if (pomoRunning) {
       clearInterval(pomoInterval); pomoRunning = false;
       document.getElementById('pomo-play-btn').textContent = '▶';
+      document.getElementById('widget-pomo-play-btn').textContent = '▶';
     } else {
       pomoRunning = true;
       document.getElementById('pomo-play-btn').textContent = '⏸';
+      document.getElementById('widget-pomo-play-btn').textContent = '⏸';
       pomoInterval = setInterval(() => {
         pomoSecondsLeft--;
         renderPomoDisplay();
+        // Save state every 10 seconds
+        if (pomoSecondsLeft % 10 === 0) savePomoState();
         if (pomoSecondsLeft <= 0) {
           clearInterval(pomoInterval); pomoRunning = false;
           document.getElementById('pomo-play-btn').textContent = '▶';
+          document.getElementById('widget-pomo-play-btn').textContent = '▶';
           onPomoComplete();
         }
       }, 1000);
     }
+    savePomoState();
   }
   function onPomoComplete() {
     if (pomoMode === 'work') {
@@ -775,6 +984,7 @@
       showNotif('🍅 Session complete! Take a break.');
       autoSwitchPomo(pomoSessions % 4 === 0 ? 'long' : 'short');
     } else { showNotif('⚡ Break over! Back to work.'); autoSwitchPomo('work'); }
+    savePomoState();
   }
   function autoSwitchPomo(mode) {
     pomoMode = mode;
@@ -784,14 +994,17 @@
     tabs[idx[mode]].classList.add('active');
     pomoTotalSeconds = pomoSettings[mode]*60; pomoSecondsLeft = pomoTotalSeconds;
     updateRingColor(); renderPomoDisplay();
+    savePomoState();
   }
   function resetPomo() {
     clearInterval(pomoInterval); pomoRunning = false;
     document.getElementById('pomo-play-btn').textContent = '▶';
+    document.getElementById('widget-pomo-play-btn').textContent = '▶';
     pomoTotalSeconds = pomoSettings[pomoMode]*60; pomoSecondsLeft = pomoTotalSeconds;
     renderPomoDisplay();
+    savePomoState();
   }
-  function skipPomo() { clearInterval(pomoInterval); pomoRunning = false; document.getElementById('pomo-play-btn').textContent = '▶'; onPomoComplete(); }
+  function skipPomo() { clearInterval(pomoInterval); pomoRunning = false; document.getElementById('pomo-play-btn').textContent = '▶'; document.getElementById('widget-pomo-play-btn').textContent = '▶'; onPomoComplete(); savePomoState(); }
 
   /* ── GLOBAL TICK ── */
   setInterval(() => {
@@ -830,7 +1043,7 @@
 </script>
 
 <footer style="padding:16px 36px; border-top:1px solid var(--border); color:var(--muted); font-size:11px; text-align:right;">
-  version 1.2.0
+  version 1.2.1
 </footer>
 
 </body>
